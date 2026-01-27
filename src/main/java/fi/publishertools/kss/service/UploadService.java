@@ -16,10 +16,14 @@ public class UploadService {
 
     private final UploadProperties uploadProperties;
     private final InMemoryFileStore fileStore;
+    private final ProcessingPipelineService pipelineService;
 
-    public UploadService(UploadProperties uploadProperties, InMemoryFileStore fileStore) {
+    public UploadService(UploadProperties uploadProperties, 
+                         InMemoryFileStore fileStore,
+                         ProcessingPipelineService pipelineService) {
         this.uploadProperties = uploadProperties;
         this.fileStore = fileStore;
+        this.pipelineService = pipelineService;
     }
 
     public StoredFile storeFile(MultipartFile file) throws IOException {
@@ -49,6 +53,10 @@ public class UploadService {
         );
 
         fileStore.save(storedFile);
+        
+        // Trigger processing pipeline
+        pipelineService.submitForProcessing(storedFile);
+        
         return storedFile;
     }
 }

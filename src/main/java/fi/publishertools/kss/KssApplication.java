@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(UploadProperties.class)
+@EnableConfigurationProperties({UploadProperties.class, fi.publishertools.kss.config.ProcessingProperties.class})
 public class KssApplication {
 
 	public static void main(String[] args) {

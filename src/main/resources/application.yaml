@@ -10,3 +10,9 @@ kss:
   upload:
     # Maximum allowed upload size exposed as configuration (10MB)
     max-size-bytes: 10485760
+  processing:
+    # Number of processing phases in the pipeline
+    phases:
+      count: 3
+    # Thread name prefix for processing phase worker threads
+    phase-thread-prefix: "processing-phase-"
