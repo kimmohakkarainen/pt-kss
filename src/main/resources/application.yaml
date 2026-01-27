@@ -1,3 +1,12 @@
 spring:
   application:
     name: kss
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+kss:
+  upload:
+    # Maximum allowed upload size exposed as configuration (10MB)
+    max-size-bytes: 10485760
