@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import fi.publishertools.kss.config.ProcessingProperties;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.processing.ProcessingPhase;
@@ -26,16 +25,14 @@ import jakarta.annotation.PreDestroy;
 public class ProcessingPipelineService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessingPipelineService.class);
+    private static final String PHASE_THREAD_PREFIX = "phase-";
 
-    private final ProcessingProperties processingProperties;
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
     private ProcessingPipeline pipeline;
 
-    public ProcessingPipelineService(ProcessingProperties processingProperties,
-                                     ProcessingStatusStore statusStore,
+    public ProcessingPipelineService(ProcessingStatusStore statusStore,
                                      ProcessedResultStore resultStore) {
-        this.processingProperties = processingProperties;
         this.statusStore = statusStore;
         this.resultStore = resultStore;
     }
@@ -48,7 +45,7 @@ public class ProcessingPipelineService {
                 phases,
                 statusStore,
                 resultStore,
-                processingProperties.getPhaseThreadPrefix()
+                PHASE_THREAD_PREFIX
         );
         pipeline.start();
         logger.info("Processing pipeline service initialized");
@@ -84,18 +81,11 @@ public class ProcessingPipelineService {
     }
 
     private List<ProcessingPhase> createPhases() {
-        int phaseCount = processingProperties.getPhases().getCount();
         List<ProcessingPhase> phases = new ArrayList<>();
-
         phases.add(new ExtractStoriesPhase());
         phases.add(new MetadataExtractionPhase());
         phases.add(new DataTransformationPhase());
         phases.add(new FinalizationPhase());
-
-        if (phaseCount != 4) {
-            logger.warn("Configured phase count ({}) differs from implemented phases (4). Using 4 phases.", phaseCount);
-        }
-
         logger.info("Created {} processing phases", phases.size());
         return phases;
     }
