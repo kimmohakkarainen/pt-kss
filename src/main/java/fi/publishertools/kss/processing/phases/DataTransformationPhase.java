@@ -24,14 +24,17 @@ public class DataTransformationPhase implements ProcessingPhase {
         Instant processingTime = Instant.now();
         context.addMetadata("processedAt", processingTime.toString());
 
-        // Calculate checksum (SHA-256)
+        // Calculate checksum (SHA-256) over original file contents
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(context.getData());
-            String checksum = bytesToHex(hash);
-            context.addMetadata("checksum", checksum);
-            context.addMetadata("checksumAlgorithm", "SHA-256");
-            logger.debug("Calculated checksum for file {}", context.getFileId());
+            byte[] contents = context.getOriginalFileContents();
+            if (contents != null) {
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(contents);
+                String checksum = bytesToHex(hash);
+                context.addMetadata("checksum", checksum);
+                context.addMetadata("checksumAlgorithm", "SHA-256");
+                logger.debug("Calculated checksum for file {}", context.getFileId());
+            }
         } catch (Exception e) {
             logger.warn("Failed to calculate checksum for file {}", context.getFileId(), e);
             // Continue processing even if checksum calculation fails

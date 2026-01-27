@@ -36,14 +36,11 @@ public class ExtractStoriesPhase implements ProcessingPhase {
     private static final String REQUIRED_MEDIA_TYPE = "text/xml";
     private static final String IDML_PACKAGING_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging";
 
-    /** Metadata key for the list of Story {@code src} attribute values passed to the next phase. */
-    public static final String STORY_SRC_LIST_KEY = "storySrcList";
-
     @Override
     public void process(ProcessingContext context) throws Exception {
         logger.debug("Extracting stories for file {}", context.getFileId());
 
-        byte[] zipBytes = context.getData();
+        byte[] zipBytes = context.getOriginalFileContents();
         if (zipBytes == null || zipBytes.length == 0) {
             throw new IllegalArgumentException("Input data is empty");
         }
@@ -77,13 +74,12 @@ public class ExtractStoriesPhase implements ProcessingPhase {
             throw new IllegalArgumentException("ZIP does not contain entry at full-path: " + fullPath);
         }
 
-        context.setData(extracted);
         context.addMetadata("rootfileMediaType", mediaType);
         context.addMetadata("rootfileFullPath", fullPath);
 
         Document fullPathDoc = parseXml(extracted);
         List<String> storySrcList = extractStorySrcList(fullPathDoc);
-        context.addMetadata(STORY_SRC_LIST_KEY, storySrcList);
+        context.setStoriesList(storySrcList);
 
         logger.debug("Extracted file at {} (media-type {}), {} Story src entries for file {}",
                 fullPath, mediaType, storySrcList.size(), context.getFileId());

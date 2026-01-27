@@ -2,6 +2,7 @@ package fi.publishertools.kss.model;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,7 +15,9 @@ public class ProcessingContext {
     private final String contentType;
     private final long fileSize;
     private final Instant uploadTime;
-    private byte[] data;
+    private final byte[] originalFileContents;
+    private List<String> storiesList;
+    private List<String> chapters;
     private final Map<String, Object> metadata;
 
     public ProcessingContext(StoredFile storedFile) {
@@ -23,7 +26,9 @@ public class ProcessingContext {
         this.contentType = storedFile.getContentType();
         this.fileSize = storedFile.getSize();
         this.uploadTime = storedFile.getUploadTime();
-        this.data = storedFile.getData();
+        this.originalFileContents = storedFile.getData();
+        this.storiesList = null;
+        this.chapters = null;
         this.metadata = new HashMap<>();
     }
 
@@ -47,12 +52,24 @@ public class ProcessingContext {
         return uploadTime;
     }
 
-    public byte[] getData() {
-        return data;
+    public byte[] getOriginalFileContents() {
+        return originalFileContents;
     }
 
-    public void setData(byte[] data) {
-        this.data = data;
+    public List<String> getStoriesList() {
+        return storiesList;
+    }
+
+    public void setStoriesList(List<String> storiesList) {
+        this.storiesList = storiesList;
+    }
+
+    public List<String> getChapters() {
+        return chapters;
+    }
+
+    public void setChapters(List<String> chapters) {
+        this.chapters = chapters;
     }
 
     public Map<String, Object> getMetadata() {

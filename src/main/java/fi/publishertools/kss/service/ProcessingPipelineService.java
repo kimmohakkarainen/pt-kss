@@ -12,6 +12,7 @@ import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.processing.ProcessingPipeline;
 import fi.publishertools.kss.processing.phases.DataTransformationPhase;
+import fi.publishertools.kss.processing.phases.ExtractChaptersPhase;
 import fi.publishertools.kss.processing.phases.ExtractStoriesPhase;
 import fi.publishertools.kss.processing.phases.FinalizationPhase;
 import fi.publishertools.kss.processing.phases.MetadataExtractionPhase;
@@ -83,6 +84,7 @@ public class ProcessingPipelineService {
     private List<ProcessingPhase> createPhases() {
         List<ProcessingPhase> phases = new ArrayList<>();
         phases.add(new ExtractStoriesPhase());
+        phases.add(new ExtractChaptersPhase());
         phases.add(new MetadataExtractionPhase());
         phases.add(new DataTransformationPhase());
         phases.add(new FinalizationPhase());
