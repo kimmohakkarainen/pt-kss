@@ -13,6 +13,7 @@ import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.processing.ProcessingPipeline;
 import fi.publishertools.kss.processing.phases.DataTransformationPhase;
+import fi.publishertools.kss.processing.phases.ExtractStoriesPhase;
 import fi.publishertools.kss.processing.phases.FinalizationPhase;
 import fi.publishertools.kss.processing.phases.MetadataExtractionPhase;
 import jakarta.annotation.PostConstruct;
@@ -86,14 +87,13 @@ public class ProcessingPipelineService {
         int phaseCount = processingProperties.getPhases().getCount();
         List<ProcessingPhase> phases = new ArrayList<>();
 
-        // Always include the three example phases
+        phases.add(new ExtractStoriesPhase());
         phases.add(new MetadataExtractionPhase());
         phases.add(new DataTransformationPhase());
         phases.add(new FinalizationPhase());
 
-        // If configured count is different, log a warning but use the three phases
-        if (phaseCount != 3) {
-            logger.warn("Configured phase count ({}) differs from implemented phases (3). Using 3 phases.", phaseCount);
+        if (phaseCount != 4) {
+            logger.warn("Configured phase count ({}) differs from implemented phases (4). Using 4 phases.", phaseCount);
         }
 
         logger.info("Created {} processing phases", phases.size());

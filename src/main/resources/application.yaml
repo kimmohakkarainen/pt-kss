@@ -13,6 +13,6 @@ kss:
   processing:
     # Number of processing phases in the pipeline
     phases:
-      count: 3
+      count: 4
     # Thread name prefix for processing phase worker threads
     phase-thread-prefix: "processing-phase-"

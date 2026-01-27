@@ -25,7 +25,7 @@ public class ProcessingProperties {
     }
 
     public static class Phases {
-        private int count = 3;
+        private int count = 4;
 
         public int getCount() {
             return count;
