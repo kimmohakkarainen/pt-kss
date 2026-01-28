@@ -18,6 +18,7 @@ public class ProcessingContext {
     private final byte[] originalFileContents;
     private List<String> storiesList;
     private List<String> chapters;
+    private String xhtmlContent;
     private final Map<String, Object> metadata;
 
     public ProcessingContext(StoredFile storedFile) {
@@ -29,6 +30,7 @@ public class ProcessingContext {
         this.originalFileContents = storedFile.getData();
         this.storiesList = null;
         this.chapters = null;
+        this.xhtmlContent = null;
         this.metadata = new HashMap<>();
     }
 
@@ -70,6 +72,14 @@ public class ProcessingContext {
 
     public void setChapters(List<String> chapters) {
         this.chapters = chapters;
+    }
+
+    public String getXhtmlContent() {
+        return xhtmlContent;
+    }
+
+    public void setXhtmlContent(String xhtmlContent) {
+        this.xhtmlContent = xhtmlContent;
     }
 
     public Map<String, Object> getMetadata() {

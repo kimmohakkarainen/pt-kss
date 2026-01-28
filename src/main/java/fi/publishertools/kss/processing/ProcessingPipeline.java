@@ -167,6 +167,7 @@ public class ProcessingPipeline {
         payload.put("uploadTime", context.getUploadTime().toString());
         payload.put("storiesList", context.getStoriesList());
         payload.put("chapters", context.getChapters());
+        payload.put("xhtml", context.getXhtmlContent());
 
         statusStore.setStatus(context.getFileId(), ProcessingStatus.READY);
         resultStore.storeResult(context.getFileId(), payload);
