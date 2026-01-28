@@ -22,7 +22,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * </ul>
  * The resulting ZIP bytes are stored into {@link ProcessingContext} metadata under key {@code "epubFile"}.
  */
-public class AssembleEpubPhase implements ProcessingPhase {
+public class AssembleEpubPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(AssembleEpubPhase.class);
 
@@ -73,9 +73,5 @@ public class AssembleEpubPhase implements ProcessingPhase {
         }
     }
 
-    @Override
-    public String getName() {
-        return "AssembleEpub";
-    }
 }
 

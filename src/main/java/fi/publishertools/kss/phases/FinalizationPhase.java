@@ -11,7 +11,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
 /**
  * Phase 3: Finalize output by adding finalization timestamp and preparing final JSON structure.
  */
-public class FinalizationPhase implements ProcessingPhase {
+public class FinalizationPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(FinalizationPhase.class);
 
@@ -41,8 +41,4 @@ public class FinalizationPhase implements ProcessingPhase {
         logger.debug("Finalization completed for file {}", context.getFileId());
     }
 
-    @Override
-    public String getName() {
-        return "Finalization";
-    }
 }

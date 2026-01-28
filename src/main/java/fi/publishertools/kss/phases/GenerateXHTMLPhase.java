@@ -14,7 +14,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * The document has a head with title set to the original filename, and a body
  * where each chapter string is wrapped in {@code <section class="chapter">}.
  */
-public class GenerateXHTMLPhase implements ProcessingPhase {
+public class GenerateXHTMLPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateXHTMLPhase.class);
 
@@ -51,11 +51,6 @@ public class GenerateXHTMLPhase implements ProcessingPhase {
 
         context.setXhtmlContent(xhtml);
         logger.debug("Generated XHTML with {} chapters for file {}", chapters.size(), context.getFileId());
-    }
-
-    @Override
-    public String getName() {
-        return "GenerateXHTML";
     }
 
     private static String escapeXml(String s) {

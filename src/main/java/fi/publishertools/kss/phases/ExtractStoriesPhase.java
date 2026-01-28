@@ -27,7 +27,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * if media-type is "text/xml", extract the file at full-path, parse it, collect Story src
  * attributes, and pass the list to the next phase.
  */
-public class ExtractStoriesPhase implements ProcessingPhase {
+public class ExtractStoriesPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractStoriesPhase.class);
 
@@ -83,11 +83,6 @@ public class ExtractStoriesPhase implements ProcessingPhase {
 
         logger.debug("Extracted file at {} (media-type {}), {} Story src entries for file {}",
                 fullPath, mediaType, storySrcList.size(), context.getFileId());
-    }
-
-    @Override
-    public String getName() {
-        return "ExtractStories";
     }
 
     private static byte[] extractZipEntry(byte[] zipBytes, String entryName) throws IOException {

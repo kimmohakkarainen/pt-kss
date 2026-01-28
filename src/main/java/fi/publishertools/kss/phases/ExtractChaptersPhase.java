@@ -28,7 +28,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * original ZIP in that order, parse as XML, and collect text from ParagraphStyleRange/Content
  * under Story into a single ordered list for downstream phases.
  */
-public class ExtractChaptersPhase implements ProcessingPhase {
+public class ExtractChaptersPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(ExtractChaptersPhase.class);
 
@@ -70,10 +70,6 @@ public class ExtractChaptersPhase implements ProcessingPhase {
         logger.debug("Extracted {} content text entries for file {}", contentTextsList.size(), context.getFileId());
     }
 
-    @Override
-    public String getName() {
-        return "ExtractChapters";
-    }
 
     private static byte[] extractZipEntry(byte[] zipBytes, String entryName) throws IOException {
         if (entryName == null || entryName.isEmpty()) {
