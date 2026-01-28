@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
+import fi.publishertools.kss.phases.AssembleEpubPhase;
 
 class AssembleEpubPhaseTest {
 

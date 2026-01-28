@@ -1,4 +1,4 @@
-package fi.publishertools.kss.processing.phases;
+package fi.publishertools.kss.phases;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package fi.publishertools.kss.processing.phases;
+package fi.publishertools.kss.phases;
 
 import java.util.Collections;
 import java.util.List;
