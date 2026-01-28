@@ -11,6 +11,7 @@ import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.processing.ProcessingPipeline;
+import fi.publishertools.kss.processing.phases.AssembleEpubPhase;
 import fi.publishertools.kss.processing.phases.ExtractChaptersPhase;
 import fi.publishertools.kss.processing.phases.ExtractStoriesPhase;
 import fi.publishertools.kss.processing.phases.FinalizationPhase;
@@ -85,6 +86,7 @@ public class ProcessingPipelineService {
         phases.add(new ExtractStoriesPhase());
         phases.add(new ExtractChaptersPhase());
         phases.add(new GenerateXHTMLPhase());
+        phases.add(new AssembleEpubPhase());
         phases.add(new FinalizationPhase());
         logger.info("Created {} processing phases", phases.size());
         return phases;

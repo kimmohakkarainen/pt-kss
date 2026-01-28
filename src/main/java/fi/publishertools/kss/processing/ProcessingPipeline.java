@@ -169,6 +169,11 @@ public class ProcessingPipeline {
         payload.put("chapters", context.getChapters());
         payload.put("xhtml", context.getXhtmlContent());
 
+        byte[] epubFile = context.getMetadata("epubFile", byte[].class);
+        if (epubFile != null) {
+            payload.put("epubFile", epubFile);
+        }
+
         statusStore.setStatus(context.getFileId(), ProcessingStatus.READY);
         resultStore.storeResult(context.getFileId(), payload);
     }
