@@ -27,8 +27,11 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
     	
         logger.debug("Creating package.opf for file {}", context.getFileId());
 
-        byte [] opfBytes = PackageOpf.Builder.create();
-        context.addMetadata("packageOpf", opfBytes);
+        byte [] opfBytes = PackageOpf.Builder
+        		.title(context.getOriginalFilename())
+        		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false)
+        		.build();
+        context.setPackageObf(opfBytes);
 
         logger.debug("Created package.opf ({} bytes) for file {}", opfBytes.length, context.getFileId());
     }

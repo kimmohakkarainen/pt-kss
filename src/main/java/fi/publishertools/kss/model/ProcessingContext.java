@@ -16,9 +16,10 @@ public class ProcessingContext {
     private final long fileSize;
     private final Instant uploadTime;
     private final byte[] originalFileContents;
+    private byte[] packageOpf;
     private List<String> storiesList;
     private List<String> chapters;
-    private String xhtmlContent;
+    private byte[] xhtmlContent;
     private final Map<String, Object> metadata;
 
     public ProcessingContext(StoredFile storedFile) {
@@ -58,6 +59,14 @@ public class ProcessingContext {
         return originalFileContents;
     }
 
+    public byte[] getPackageOpf() {
+    	return this.packageOpf;
+    }
+    
+    public void setPackageObf(byte [] packageOpf) {
+    	this.packageOpf = packageOpf;
+    }
+    
     public List<String> getStoriesList() {
         return storiesList;
     }
@@ -74,11 +83,11 @@ public class ProcessingContext {
         this.chapters = chapters;
     }
 
-    public String getXhtmlContent() {
+    public byte [] getXhtmlContent() {
         return xhtmlContent;
     }
 
-    public void setXhtmlContent(String xhtmlContent) {
+    public void setXhtmlContent(byte [] xhtmlContent) {
         this.xhtmlContent = xhtmlContent;
     }
 

@@ -19,4 +19,12 @@ public class SpineItem {
     public String getLinear() {
         return linear;
     }
+    
+    public static SpineItem create(String id, boolean linear) {
+    	SpineItem item = new SpineItem();
+    	item.idRef = id;
+    	item.linear = linear ? "yes" : null;
+    	return item;
+    }
+
 }

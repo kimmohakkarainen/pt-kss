@@ -34,4 +34,12 @@ public class ManifestItem {
         return properties;
     }
 
+    public static ManifestItem create(String id, String href, String mediaType, String properties) {
+    	ManifestItem item = new ManifestItem();
+    	item.id = id;
+    	item.href = href;
+    	item.mediaType = mediaType;
+    	item.properties = properties;
+    	return item;
+    }
 }

@@ -49,7 +49,7 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
                 + "  </body>\n"
                 + "</html>";
 
-        context.setXhtmlContent(xhtml);
+        context.setXhtmlContent(xhtml.getBytes("utf-8"));
         logger.debug("Generated XHTML with {} chapters for file {}", chapters.size(), context.getFileId());
     }
 

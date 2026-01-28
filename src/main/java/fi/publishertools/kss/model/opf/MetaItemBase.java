@@ -36,8 +36,9 @@ public class MetaItemBase {
         return value;
     }
 
-    public void setValue(String value) {
+    public MetaItemBase setValue(String value) {
         this.value = value;
+        return this;
     }
 
 }

@@ -2,6 +2,7 @@ package fi.publishertools.kss.phases;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.container.ContainerXml;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
 /**
@@ -29,13 +31,15 @@ public class AssembleEpubPhase extends ProcessingPhase {
     private static final String MIMETYPE_ENTRY_NAME = "mimetype";
     private static final String MIMETYPE_CONTENT = "application/epub+zip";
     private static final String CONTAINER_XML_PATH = "META-INF/container.xml";
+    private static final String CONTENT_OPF_PATH = "OEBPS/contents.opf";
+    private static final String XHTML_PATH = "OEBPS/Koottu-1.xhtml";
 
     @Override
     public void process(ProcessingContext context) throws Exception {
         logger.debug("Assembling EPUB ZIP for file {}", context.getFileId());
 
         byte[] mimetypeBytes = MIMETYPE_CONTENT.getBytes(StandardCharsets.UTF_8);
-        byte[] containerBytes = new byte[0]; // empty for now
+        byte[] containerBytes = ContainerXml.create(Arrays.asList(CONTENT_OPF_PATH));
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {
@@ -64,6 +68,26 @@ public class AssembleEpubPhase extends ProcessingPhase {
             }
             zos.closeEntry();
 
+            
+            // Entry 3: OEBPS/content.opf (may use default compression)
+            ZipEntry opfEntry = new ZipEntry(CONTENT_OPF_PATH);
+            zos.putNextEntry(opfEntry);
+            if (context.getPackageOpf().length > 0) {
+                zos.write(context.getPackageOpf());
+            }
+            zos.closeEntry();
+
+
+            // Entry 3: OEBPS/content.opf (may use default compression)
+            ZipEntry xhtmlEntry = new ZipEntry(XHTML_PATH);
+            zos.putNextEntry(xhtmlEntry);
+            if (context.getXhtmlContent().length > 0) {
+                zos.write(context.getXhtmlContent());
+            }
+            zos.closeEntry();
+
+            
+            
             zos.finish();
 
             byte[] epubBytes = baos.toByteArray();
