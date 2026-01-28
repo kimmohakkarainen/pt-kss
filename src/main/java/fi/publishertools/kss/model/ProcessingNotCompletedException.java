@@ -1,0 +1,8 @@
+package fi.publishertools.kss.model;
+
+public class ProcessingNotCompletedException extends RuntimeException {
+
+    public ProcessingNotCompletedException(String message) {
+        super(message);
+    }
+}

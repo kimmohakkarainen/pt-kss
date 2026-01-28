@@ -22,6 +22,6 @@ public abstract class ProcessingPhase {
      * @return the phase name
      */
     public String getName() {
-    	return this.getClass().getCanonicalName();
+    	return this.getClass().getSimpleName();
     }
 }
