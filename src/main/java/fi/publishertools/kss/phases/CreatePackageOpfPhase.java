@@ -29,6 +29,9 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
 
         byte [] opfBytes = PackageOpf.Builder
         		.title(context.getOriginalFilename())
+        		.setVersion("3.0")
+        		.setXmlLang("FI")
+        		.setUniqueIdentifier("primary-title")
         		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false)
         		.build();
         context.setPackageObf(opfBytes);

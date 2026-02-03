@@ -91,6 +91,21 @@ public class PackageOpf {
 			return builder;
 		}
 		
+		public Builder setVersion(String version) {
+			this.target.version = version;
+			return this;
+		}
+		
+		public Builder setXmlLang(String xmllang) {
+			this.target.xmlLang = xmllang;
+			return this;
+		}
+		
+		public Builder setUniqueIdentifier(String uid) {
+			this.target.uniqueIdentifier = uid;
+			return this;
+		}
+		
 		public Builder addManifestItem(String id, String href, String mediaType, String properties) {
 			this.target.manifest.items.add(ManifestItem.create(id, href, mediaType, properties));
 			return this;
