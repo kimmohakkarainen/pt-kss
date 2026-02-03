@@ -40,9 +40,11 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
                     .append(escaped).append("</section>\n");
             sectionIndex++;
         }
+        
+        String language = context.getMetadata("language", String.class);
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<html xmlns=\"" + XHTML_NS + "\">\n"
+                + "<html xmlns=\"" + XHTML_NS + "\" lang=\"" + language + "\" xml:lang=\"" + language + "\">\n"
                 + "  <head>\n"
                 + "    <meta charset=\"UTF-8\"/>\n"
                 + "    <title>" + escapedTitle + "</title>\n"
