@@ -11,7 +11,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.UploadResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import fi.publishertools.kss.model.InvalidContentTypeException;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.service.UploadService;
@@ -29,6 +35,12 @@ public class UploadController {
         this.uploadService = uploadService;
     }
 
+    @Operation(summary = "Upload ZIP file", description = "Upload a ZIP file for EPUB processing")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "File uploaded successfully"),
+            @ApiResponse(responseCode = "413", description = "File too large", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "415", description = "Invalid content type", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping(
             path = "/upload",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,

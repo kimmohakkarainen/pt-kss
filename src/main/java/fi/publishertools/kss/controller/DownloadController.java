@@ -9,8 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.model.DownloadableFile;
 import fi.publishertools.kss.service.EpubDownloadService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 /**
  * REST controller for downloading ready-made EPUB files by upload/processing ID.
@@ -27,6 +33,11 @@ public class DownloadController {
         this.epubDownloadService = epubDownloadService;
     }
 
+    @Operation(summary = "Download EPUB", description = "Download a ready-made EPUB file by upload/processing ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "EPUB file"),
+            @ApiResponse(responseCode = "404", description = "EPUB not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping(
             path = "/epub/{id}",
             produces = EPUB_MEDIA_TYPE

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fi.publishertools.kss.dto.StatusResponse;
 import fi.publishertools.kss.model.ProcessedResult;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import fi.publishertools.kss.model.ProcessingStatus;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;
@@ -29,6 +32,11 @@ public class StatusController {
         this.resultStore = resultStore;
     }
 
+    @Operation(summary = "Get processing status", description = "Check the processing status of an uploaded file")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Current status (ready, in-progress, awaiting-metadata, or error)"),
+            @ApiResponse(responseCode = "500", description = "Processing error")
+    })
     @GetMapping(
             path = "/status/{fileId}",
             produces = MediaType.APPLICATION_JSON_VALUE

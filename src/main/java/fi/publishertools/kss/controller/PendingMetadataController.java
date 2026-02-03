@@ -15,9 +15,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.PendingMetadataResponse;
 import fi.publishertools.kss.dto.PendingMetadataSummary;
 import fi.publishertools.kss.dto.PendingMetadataUpdateRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import fi.publishertools.kss.model.PendingMetadataNotFoundException;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.phases.CheckMandatoryInformationPhase;
@@ -37,6 +43,8 @@ public class PendingMetadataController {
         this.pipelineService = pipelineService;
     }
 
+    @Operation(summary = "List pending metadata", description = "List all files awaiting metadata completion")
+    @ApiResponse(responseCode = "200", description = "List of pending metadata summaries")
     @GetMapping(
             path = "/pending-metadata",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -51,6 +59,11 @@ public class PendingMetadataController {
         return ResponseEntity.ok(summaries);
     }
 
+    @Operation(summary = "Get pending metadata", description = "Get current metadata and missing fields for a file")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Pending metadata with missing fields"),
+            @ApiResponse(responseCode = "404", description = "Pending metadata not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping(
             path = "/pending-metadata/{fileId}",
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -70,6 +83,11 @@ public class PendingMetadataController {
         ));
     }
 
+    @Operation(summary = "Update pending metadata", description = "Update metadata fields for a file awaiting completion. All fields are optional.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Updated metadata with remaining missing fields"),
+            @ApiResponse(responseCode = "404", description = "Pending metadata not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PatchMapping(
             path = "/pending-metadata/{fileId}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -93,6 +111,11 @@ public class PendingMetadataController {
         ));
     }
 
+    @Operation(summary = "Approve metadata", description = "Approve completed metadata and resubmit for processing")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Approval accepted, processing resumed"),
+            @ApiResponse(responseCode = "404", description = "Pending metadata not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping(
             path = "/pending-metadata/{fileId}/approve",
             produces = MediaType.APPLICATION_JSON_VALUE
