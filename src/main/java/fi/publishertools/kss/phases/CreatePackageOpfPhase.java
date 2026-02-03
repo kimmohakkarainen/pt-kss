@@ -47,6 +47,7 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
         		.addMetaItem(DCPublisher.create(context.getMetadata("publisher", String.class)))
         		.addMetaItem(DCLanguage.create(context.getMetadata("language", String.class)))
         		.addMetaItem(MetaItem.createProperty("dcterms:modified", LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss'Z'"))))
+				.addManifestItem("toc", "toc.xhtml", "application/xhtml+xml", "nav")
         		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false)
         		.build();
         context.setPackageObf(opfBytes);

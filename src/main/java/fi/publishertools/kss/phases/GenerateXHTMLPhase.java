@@ -33,9 +33,12 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
         String escapedTitle = escapeXml(title);
 
         StringBuilder body = new StringBuilder();
+        int sectionIndex = 1;
         for (String chapter : chapters) {
             String escaped = escapeXml(chapter != null ? chapter : "");
-            body.append("    <section class=\"chapter\">").append(escaped).append("</section>\n");
+            body.append("    <section class=\"chapter\" id=\"section-").append(sectionIndex).append("\">")
+                    .append(escaped).append("</section>\n");
+            sectionIndex++;
         }
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

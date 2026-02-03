@@ -33,6 +33,7 @@ public class AssembleEpubPhase extends ProcessingPhase {
     private static final String CONTAINER_XML_PATH = "META-INF/container.xml";
     private static final String CONTENT_OPF_PATH = "OEBPS/contents.opf";
     private static final String XHTML_PATH = "OEBPS/Koottu-1.xhtml";
+    private static final String TOC_PATH = "OEBPS/toc.xhtml";
 
     @Override
     public void process(ProcessingContext context) throws Exception {
@@ -87,6 +88,14 @@ public class AssembleEpubPhase extends ProcessingPhase {
             }
             zos.closeEntry();
 
+            // Entry 5: OEBPS/toc.xhtml (may use default compression)
+            ZipEntry tocEntry = new ZipEntry(TOC_PATH);
+            zos.putNextEntry(tocEntry);
+            byte[] tocContent = context.getTocContent();
+            if (tocContent != null && tocContent.length > 0) {
+                zos.write(tocContent);
+            }
+            zos.closeEntry();
             
             
             zos.finish();

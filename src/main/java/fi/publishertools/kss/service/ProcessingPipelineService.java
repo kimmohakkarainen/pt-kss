@@ -16,6 +16,7 @@ import fi.publishertools.kss.phases.CreatePackageOpfPhase;
 import fi.publishertools.kss.phases.ExtractChaptersPhase;
 import fi.publishertools.kss.phases.ExtractStoriesPhase;
 import fi.publishertools.kss.phases.FinalizationPhase;
+import fi.publishertools.kss.phases.GenerateTOCPhase;
 import fi.publishertools.kss.phases.GenerateXHTMLPhase;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.processing.ProcessingPipeline;
@@ -115,6 +116,7 @@ public class ProcessingPipelineService {
         phases.add(new ExtractChaptersPhase());
         phases.add(new CheckMandatoryInformationPhase());
         phases.add(new GenerateXHTMLPhase());
+        phases.add(new GenerateTOCPhase());
         phases.add(new CreatePackageOpfPhase());
         phases.add(new AssembleEpubPhase());
         phases.add(new FinalizationPhase());
