@@ -106,6 +106,11 @@ public class PackageOpf {
 			return this;
 		}
 		
+		public Builder addMetaItem(MetaItemBase metaitem) {
+			this.target.metadata.items.add(metaitem);
+			return this;
+		}
+		
 		public Builder addManifestItem(String id, String href, String mediaType, String properties) {
 			this.target.manifest.items.add(ManifestItem.create(id, href, mediaType, properties));
 			return this;

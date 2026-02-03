@@ -44,4 +44,10 @@ public class DCCreator extends MetaItemBase {
     public String getFileAs() {
 	return fileAs;
     }
+    
+    public static DCCreator create(String value) {
+    	DCCreator target = new DCCreator();
+    	target.value = value;
+    	return target;
+    }
 }

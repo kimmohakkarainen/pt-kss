@@ -30,4 +30,10 @@ public class DCTitle extends MetaItemBase {
     public String getXmlLang() {
         return xmlLang;
     }
+    
+    public static DCTitle create(String value) {
+    	DCTitle target = new DCTitle();
+    	target.value = value;
+    	return target;
+    }
 }

@@ -23,4 +23,11 @@ public class DCIdentifier extends MetaItemBase {
     public String getOpfScheme() {
 	return scheme;
     }
+    
+    public static DCIdentifier create(String id, String value) {
+    	DCIdentifier target = new DCIdentifier();
+    	target.id = id;
+    	target.value = value;
+    	return target;
+    }
 }

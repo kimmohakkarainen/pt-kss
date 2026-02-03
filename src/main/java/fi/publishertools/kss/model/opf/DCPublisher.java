@@ -30,4 +30,12 @@ public class DCPublisher extends MetaItemBase {
     public String getXmlLang() {
         return xmlLang;
     }
+    
+    
+    public static DCPublisher create(String value) {
+    	DCPublisher target = new DCPublisher();
+    	target.value = value;
+    	return target;
+    }
+
 }

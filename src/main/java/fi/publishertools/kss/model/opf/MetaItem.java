@@ -40,6 +40,13 @@ public class MetaItem extends MetaItemBase {
     	return item;
     }
     
+    public static MetaItem createProperty(String property, String value) {
+    	MetaItem item = new MetaItem();
+    	item.property = property;
+    	item.value = value;
+    	return item;
+    }
+    
     public MetaItem() {
 	super("meta");
     }

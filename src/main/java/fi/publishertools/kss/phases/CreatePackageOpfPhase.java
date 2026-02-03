@@ -1,9 +1,18 @@
 package fi.publishertools.kss.phases;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.opf.DCCreator;
+import fi.publishertools.kss.model.opf.DCIdentifier;
+import fi.publishertools.kss.model.opf.DCLanguage;
+import fi.publishertools.kss.model.opf.DCPublisher;
+import fi.publishertools.kss.model.opf.DCTitle;
+import fi.publishertools.kss.model.opf.MetaItem;
 import fi.publishertools.kss.model.opf.PackageOpf;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
@@ -31,7 +40,13 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
         		.title(context.getOriginalFilename())
         		.setVersion("3.0")
         		.setXmlLang("FI")
-        		.setUniqueIdentifier("primary-title")
+        		.setUniqueIdentifier("primary-identifier")
+        		.addMetaItem(DCIdentifier.create("primary-identifier", context.getMetadata("identifier", String.class)))
+        		.addMetaItem(DCTitle.create(context.getMetadata("title", String.class)))
+        		.addMetaItem(DCCreator.create(context.getMetadata("creator", String.class)))
+        		.addMetaItem(DCPublisher.create(context.getMetadata("publisher", String.class)))
+        		.addMetaItem(DCLanguage.create(context.getMetadata("language", String.class)))
+        		.addMetaItem(MetaItem.createProperty("dcterms:modified", LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss'Z'"))))
         		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false)
         		.build();
         context.setPackageObf(opfBytes);
