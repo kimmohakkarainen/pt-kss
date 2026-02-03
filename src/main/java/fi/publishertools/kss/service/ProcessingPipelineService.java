@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.AssembleEpubPhase;
+import fi.publishertools.kss.phases.CheckMandatoryInformationPhase;
 import fi.publishertools.kss.phases.CreatePackageOpfPhase;
 import fi.publishertools.kss.phases.ExtractChaptersPhase;
 import fi.publishertools.kss.phases.ExtractStoriesPhase;
@@ -28,15 +29,19 @@ public class ProcessingPipelineService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessingPipelineService.class);
     private static final String PHASE_THREAD_PREFIX = "phase-";
+    private static final int CHECK_MANDATORY_PHASE_INDEX = 2;
 
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
+    private final PendingMetadataStore pendingMetadataStore;
     private ProcessingPipeline pipeline;
 
     public ProcessingPipelineService(ProcessingStatusStore statusStore,
-                                     ProcessedResultStore resultStore) {
+                                     ProcessedResultStore resultStore,
+                                     PendingMetadataStore pendingMetadataStore) {
         this.statusStore = statusStore;
         this.resultStore = resultStore;
+        this.pendingMetadataStore = pendingMetadataStore;
     }
 
     @PostConstruct
@@ -47,6 +52,7 @@ public class ProcessingPipelineService {
                 phases,
                 statusStore,
                 resultStore,
+                pendingMetadataStore,
                 PHASE_THREAD_PREFIX
         );
         pipeline.start();
@@ -82,10 +88,30 @@ public class ProcessingPipelineService {
         }
     }
 
+    /**
+     * Re-queue a ProcessingContext for CheckMandatoryInformationPhase (e.g. after user has filled metadata).
+     */
+    public void resubmitForMandatoryCheck(ProcessingContext context) {
+        if (pipeline == null) {
+            logger.error("Pipeline not initialized, cannot resubmit file {} for mandatory check", context.getFileId());
+            return;
+        }
+        try {
+            pipeline.submitToPhase(CHECK_MANDATORY_PHASE_INDEX, context);
+            logger.info("Resubmitted file {} for mandatory metadata check", context.getFileId());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Interrupted while resubmitting file {} for mandatory check", context.getFileId(), e);
+        } catch (Exception e) {
+            logger.error("Failed to resubmit file {} for mandatory check", context.getFileId(), e);
+        }
+    }
+
     private List<ProcessingPhase> createPhases() {
         List<ProcessingPhase> phases = new ArrayList<>();
         phases.add(new ExtractStoriesPhase());
         phases.add(new ExtractChaptersPhase());
+        phases.add(new CheckMandatoryInformationPhase());
         phases.add(new GenerateXHTMLPhase());
         phases.add(new CreatePackageOpfPhase());
         phases.add(new AssembleEpubPhase());

@@ -58,6 +58,9 @@ public class StatusController {
         // Check current status
         ProcessingStatus currentStatus = statusStore.getStatusOrDefault(fileId, ProcessingStatus.IN_PROGRESS);
 
+        if (currentStatus == ProcessingStatus.AWAITING_METADATA) {
+            return ResponseEntity.ok(new StatusResponse("awaiting-metadata", null, null));
+        }
         if (currentStatus == ProcessingStatus.IN_PROGRESS) {
             return ResponseEntity.ok(new StatusResponse("in-progress", null, null));
         }

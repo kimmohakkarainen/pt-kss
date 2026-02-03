@@ -20,10 +20,16 @@ mvn spring-boot:run
 
 Base URL: `http://localhost:8080` (configurable via `server.port`)
 
+**Processing flow**: Upload → in-progress → (if metadata missing) awaiting-metadata → user fills via PATCH → approve → in-progress → ready.
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/upload` | Upload a zip file for processing |
 | GET | `/api/v1/status/{fileId}` | Check processing status |
+| GET | `/api/v1/pending-metadata` | List files awaiting mandatory metadata |
+| GET | `/api/v1/pending-metadata/{fileId}` | Get metadata and missing fields for a file |
+| PATCH | `/api/v1/pending-metadata/{fileId}` | Update metadata for a file |
+| POST | `/api/v1/pending-metadata/{fileId}/approve` | Approve and re-queue for processing |
 | GET | `/api/v1/epub/{id}` | Download generated EPUB file |
 
 ---
@@ -78,13 +84,25 @@ Check the processing status of an uploaded file. Use the `id` returned from the 
 | **Path** | `/api/v1/status/{fileId}` |
 | **Produces** | `application/json` |
 
-**Status values**: `in-progress`, `ready`, `error`
+**Status values**: `in-progress`, `awaiting-metadata`, `ready`, `error`
+
+When status is `awaiting-metadata`, the user must fill mandatory EPUB metadata (title, creator, publisher, language, identifier) via the pending-metadata endpoints before processing can continue.
 
 **Success response** (200 OK) – in progress:
 
 ```json
 {
   "status": "in-progress",
+  "payload": null,
+  "errorMessage": null
+}
+```
+
+**Success response** (200 OK) – awaiting metadata:
+
+```json
+{
+  "status": "awaiting-metadata",
   "payload": null,
   "errorMessage": null
 }
@@ -120,6 +138,120 @@ Check the processing status of an uploaded file. Use the `id` returned from the 
 
 ```bash
 curl -v "http://localhost:8080/api/v1/status/abc123"
+```
+
+---
+
+### GET `/api/v1/pending-metadata`
+
+List all files that are awaiting mandatory metadata. These files have reached the metadata check phase but are missing required EPUB fields (title, creator, publisher, language, identifier).
+
+| Attribute | Value |
+|-----------|-------|
+| **Method** | `GET` |
+| **Path** | `/api/v1/pending-metadata` |
+| **Produces** | `application/json` |
+
+**Success response** (200 OK):
+
+```json
+[
+  {
+    "fileId": "abc123",
+    "originalFilename": "archive.zip"
+  }
+]
+```
+
+**Example**:
+
+```bash
+curl -v "http://localhost:8080/api/v1/pending-metadata"
+```
+
+---
+
+### GET `/api/v1/pending-metadata/{fileId}`
+
+Get current metadata and list of missing mandatory fields for a file awaiting user input.
+
+| Attribute | Value |
+|-----------|-------|
+| **Method** | `GET` |
+| **Path** | `/api/v1/pending-metadata/{fileId}` |
+| **Produces** | `application/json` |
+
+**Success response** (200 OK):
+
+```json
+{
+  "fileId": "abc123",
+  "originalFilename": "archive.zip",
+  "metadata": {
+    "title": null,
+    "creator": null,
+    "publisher": null,
+    "language": null,
+    "identifier": null
+  },
+  "missingFields": ["title", "creator", "publisher", "language", "identifier"]
+}
+```
+
+**Error response** (404 Not Found): Pending metadata not found for the given fileId.
+
+**Example**:
+
+```bash
+curl -v "http://localhost:8080/api/v1/pending-metadata/abc123"
+```
+
+---
+
+### PATCH `/api/v1/pending-metadata/{fileId}`
+
+Update metadata for a file. All fields are optional; only provided fields are updated.
+
+| Attribute | Value |
+|-----------|-------|
+| **Method** | `PATCH` |
+| **Path** | `/api/v1/pending-metadata/{fileId}` |
+| **Consumes** | `application/json` |
+| **Produces** | `application/json` |
+| **Request body** | Optional fields: `title`, `creator`, `publisher`, `language`, `identifier` |
+
+**Success response** (200 OK): Same shape as GET (updated metadata and missingFields).
+
+**Error response** (404 Not Found): Pending metadata not found for the given fileId.
+
+**Example**:
+
+```bash
+curl -v -X PATCH "http://localhost:8080/api/v1/pending-metadata/abc123" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Book","creator":"Author Name","publisher":"Publisher","language":"fi","identifier":"urn:uuid:123"}'
+```
+
+---
+
+### POST `/api/v1/pending-metadata/{fileId}/approve`
+
+Remove the file from the pending store and re-queue it for mandatory metadata check. Processing continues; if metadata is still incomplete, the file returns to pending state.
+
+| Attribute | Value |
+|-----------|-------|
+| **Method** | `POST` |
+| **Path** | `/api/v1/pending-metadata/{fileId}/approve` |
+| **Produces** | `application/json` |
+
+**Success response** (202 Accepted): Empty body; context is re-queued for mandatory metadata check.
+
+**Error response** (404 Not Found): Pending metadata not found for the given fileId.
+
+**Example**:
+
+```bash
+curl -v -X POST "http://localhost:8080/api/v1/pending-metadata/abc123/approve"
 ```
 
 ---
@@ -161,7 +293,7 @@ On validation or application errors, the API returns JSON in this format:
 | HTTP status | Condition |
 |-------------|-----------|
 | 400 Bad Request | Invalid request (e.g. missing file parameter) |
-| 404 Not Found | EPUB not found for given ID |
+| 404 Not Found | EPUB not found for given ID; or pending metadata not found (when using pending-metadata endpoints) |
 | 202 Accepted | EPUB not yet ready (processing in progress) |
 | 413 Payload Too Large | File exceeds configured max size |
 | 415 Unsupported Media Type | Content type not `application/zip` or `application/octet-stream` |

@@ -9,8 +9,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fi.publishertools.kss.model.MandatoryMetadataMissingException;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.ProcessingStatus;
+import fi.publishertools.kss.service.PendingMetadataStore;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;
 
@@ -26,16 +28,19 @@ public class ProcessingPipeline {
     private final List<Thread> workerThreads;
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
+    private final PendingMetadataStore pendingMetadataStore;
     private final String threadPrefix;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     public ProcessingPipeline(List<ProcessingPhase> phases,
                               ProcessingStatusStore statusStore,
                               ProcessedResultStore resultStore,
+                              PendingMetadataStore pendingMetadataStore,
                               String threadPrefix) {
         this.phases = new ArrayList<>(phases);
         this.statusStore = statusStore;
         this.resultStore = resultStore;
+        this.pendingMetadataStore = pendingMetadataStore;
         this.threadPrefix = threadPrefix;
         this.buffers = new ArrayList<>();
         this.workerThreads = new ArrayList<>();
@@ -94,6 +99,10 @@ public class ProcessingPipeline {
                                 storeFinalResult(context);
                                 logger.info("Processing completed for file {}", context.getFileId());
                             }
+                        } catch (MandatoryMetadataMissingException e) {
+                            statusStore.setStatus(e.getContext().getFileId(), ProcessingStatus.AWAITING_METADATA);
+                            pendingMetadataStore.store(e.getContext().getFileId(), e.getContext());
+                            logger.info("File {} awaiting mandatory metadata", e.getContext().getFileId());
                         } catch (Exception e) {
                             logger.error("Error in phase {} processing file {}", phase.getName(), context.getFileId(), e);
                             statusStore.setStatus(context.getFileId(), ProcessingStatus.ERROR);
@@ -155,6 +164,20 @@ public class ProcessingPipeline {
         }
         buffers.get(0).put(context);
         logger.debug("Submitted file {} to pipeline", context.getFileId());
+    }
+
+    /**
+     * Submit a context to a specific phase's input buffer (e.g. for re-queue after metadata approval).
+     */
+    public void submitToPhase(int phaseIndex, ProcessingContext context) throws InterruptedException {
+        if (!running.get()) {
+            throw new IllegalStateException("Pipeline is not running");
+        }
+        if (phaseIndex < 0 || phaseIndex >= buffers.size()) {
+            throw new IllegalArgumentException("Invalid phase index: " + phaseIndex);
+        }
+        buffers.get(phaseIndex).put(context);
+        logger.debug("Submitted file {} to phase {}", context.getFileId(), phaseIndex);
     }
 
     private void storeFinalResult(ProcessingContext context) {

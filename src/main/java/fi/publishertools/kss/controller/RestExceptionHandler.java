@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.StatusResponse;
 import fi.publishertools.kss.model.EpubNotFoundException;
+import fi.publishertools.kss.model.PendingMetadataNotFoundException;
 import fi.publishertools.kss.model.FileTooLargeException;
 import fi.publishertools.kss.model.InvalidContentTypeException;
 import fi.publishertools.kss.model.ProcessingNotCompletedException;
@@ -56,6 +57,18 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(EpubNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEpubNotFound(EpubNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(PendingMetadataNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePendingMetadataNotFound(PendingMetadataNotFoundException ex, HttpServletRequest request) {
         ErrorResponse body = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
