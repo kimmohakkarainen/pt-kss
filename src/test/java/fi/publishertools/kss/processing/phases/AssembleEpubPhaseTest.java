@@ -47,7 +47,9 @@ class AssembleEpubPhaseTest {
             assertThat(second).as("second entry").isNotNull();
             assertThat(second.getName()).isEqualTo("META-INF/container.xml");
             byte[] secondContent = readAllBytes(zis);
-            assertThat(secondContent.length).isEqualTo(0);
+            assertThat(secondContent.length).as("container.xml content").isGreaterThan(0);
+            String containerXml = new String(secondContent, java.nio.charset.StandardCharsets.UTF_8);
+            assertThat(containerXml).contains("OEBPS/contents.opf");
         }
     }
 

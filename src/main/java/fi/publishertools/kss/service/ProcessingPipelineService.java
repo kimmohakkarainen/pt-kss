@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.ProcessingStatus;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.AssembleEpubPhase;
 import fi.publishertools.kss.phases.CheckMandatoryInformationPhase;
@@ -97,6 +98,7 @@ public class ProcessingPipelineService {
             return;
         }
         try {
+            statusStore.setStatus(context.getFileId(), ProcessingStatus.IN_PROGRESS);
             pipeline.submitToPhase(CHECK_MANDATORY_PHASE_INDEX, context);
             logger.info("Resubmitted file {} for mandatory metadata check", context.getFileId());
         } catch (InterruptedException e) {

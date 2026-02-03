@@ -69,20 +69,21 @@ public class AssembleEpubPhase extends ProcessingPhase {
             zos.closeEntry();
 
             
-            // Entry 3: OEBPS/content.opf (may use default compression)
+            // Entry 3: OEBPS/contents.opf (may use default compression)
             ZipEntry opfEntry = new ZipEntry(CONTENT_OPF_PATH);
             zos.putNextEntry(opfEntry);
-            if (context.getPackageOpf().length > 0) {
-                zos.write(context.getPackageOpf());
+            byte[] packageOpf = context.getPackageOpf();
+            if (packageOpf != null && packageOpf.length > 0) {
+                zos.write(packageOpf);
             }
             zos.closeEntry();
 
-
-            // Entry 3: OEBPS/content.opf (may use default compression)
+            // Entry 4: OEBPS/Koottu-1.xhtml (may use default compression)
             ZipEntry xhtmlEntry = new ZipEntry(XHTML_PATH);
             zos.putNextEntry(xhtmlEntry);
-            if (context.getXhtmlContent().length > 0) {
-                zos.write(context.getXhtmlContent());
+            byte[] xhtmlContent = context.getXhtmlContent();
+            if (xhtmlContent != null && xhtmlContent.length > 0) {
+                zos.write(xhtmlContent);
             }
             zos.closeEntry();
 
