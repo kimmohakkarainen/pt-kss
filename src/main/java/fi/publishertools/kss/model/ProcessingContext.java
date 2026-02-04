@@ -19,6 +19,8 @@ public class ProcessingContext {
     private byte[] packageOpf;
     private List<String> storiesList;
     private List<String> chapters;
+    private List<ImageInfo> imageList;
+    private final Map<String, byte[]> imageContent;
     private byte[] xhtmlContent;
     private byte[] tocContent;
     private final Map<String, Object> metadata;
@@ -32,6 +34,8 @@ public class ProcessingContext {
         this.originalFileContents = storedFile.getData();
         this.storiesList = null;
         this.chapters = null;
+        this.imageList = null;
+        this.imageContent = new HashMap<>();
         this.xhtmlContent = null;
         this.tocContent = null;
         this.metadata = new HashMap<>();
@@ -83,6 +87,38 @@ public class ProcessingContext {
 
     public void setChapters(List<String> chapters) {
         this.chapters = chapters;
+    }
+
+    public List<ImageInfo> getImageList() {
+        return imageList;
+    }
+
+    public void setImageList(List<ImageInfo> imageList) {
+        this.imageList = imageList;
+    }
+
+    /**
+     * Returns the map of image content keyed by resource URI.
+     * Images (not embedded in IDML) can be added later via {@link #addImageContent}.
+     */
+    public Map<String, byte[]> getImageContent() {
+        return imageContent;
+    }
+
+    /**
+     * Stores actual image bytes for the given resource URI.
+     */
+    public void addImageContent(String resourceUri, byte[] content) {
+        if (resourceUri != null && content != null) {
+            this.imageContent.put(resourceUri, content);
+        }
+    }
+
+    /**
+     * Returns image bytes for the given resource URI, or null if not present.
+     */
+    public byte[] getImageContent(String resourceUri) {
+        return resourceUri != null ? this.imageContent.get(resourceUri) : null;
     }
 
     public byte [] getXhtmlContent() {
