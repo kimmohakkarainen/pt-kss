@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Response for GET pending-metadata/{fileId} with current metadata and missing fields.
+ * Response for GET pending-metadata/{fileId} with current metadata, missing fields, and missing images.
  */
 public class PendingMetadataResponse {
 
@@ -12,13 +12,16 @@ public class PendingMetadataResponse {
     private final String originalFilename;
     private final Map<String, Object> metadata;
     private final List<String> missingFields;
+    private final List<String> missingImages;
 
     public PendingMetadataResponse(String fileId, String originalFilename,
-                                   Map<String, Object> metadata, List<String> missingFields) {
+                                   Map<String, Object> metadata, List<String> missingFields,
+                                   List<String> missingImages) {
         this.fileId = fileId;
         this.originalFilename = originalFilename;
         this.metadata = metadata;
         this.missingFields = missingFields;
+        this.missingImages = missingImages != null ? missingImages : List.of();
     }
 
     public String getFileId() {
@@ -35,5 +38,9 @@ public class PendingMetadataResponse {
 
     public List<String> getMissingFields() {
         return missingFields;
+    }
+
+    public List<String> getMissingImages() {
+        return missingImages;
     }
 }

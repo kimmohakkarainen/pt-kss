@@ -3,8 +3,14 @@ package fi.publishertools.kss.phases;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -33,7 +39,7 @@ public class ImageExtractionPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageExtractionPhase.class);
 
-    private static final String ATTR_LIN_RESOURCE_URI = "LinResourceURI";
+    private static final String ATTR_LIN_RESOURCE_URI = "LinkResourceURI";
     private static final String ATTR_LINK_RESOURCE_FORMAT = "LinkResourceFormat";
 
     @Override
@@ -71,7 +77,35 @@ public class ImageExtractionPhase extends ProcessingPhase {
         }
 
         context.setImageList(imageList);
-        logger.debug("Extracted {} image entries for file {}", imageList.size(), context.getFileId());
+
+        // Populate imageContent from ZIP for each unique resource URI
+        Set<String> uniqueUris = new LinkedHashSet<>();
+        for (ImageInfo info : imageList) {
+            String uri = info.resourceUri();
+            if (uri != null && !uri.trim().isEmpty()) {
+                uniqueUris.add(uri);
+            }
+        }
+        for (String uri : uniqueUris) {
+            byte[] bytes = extractZipEntryWithEncodedFallback(zipBytes, uri);
+            if (bytes != null && bytes.length > 0) {
+                context.addImageContent(uri, bytes);
+            }
+        }
+
+        logger.debug("Extracted {} image entries for file {} ({} with content from ZIP)", imageList.size(), context.getFileId(), context.getImageContent().size());
+    }
+
+    private static byte[] extractZipEntryWithEncodedFallback(byte[] zipBytes, String entryName) throws IOException {
+        byte[] bytes = extractZipEntry(zipBytes, entryName);
+        if (bytes != null) {
+            return bytes;
+        }
+        String encoded = encodeUriForZipLookup(entryName);
+        if (!encoded.equals(entryName)) {
+            return extractZipEntry(zipBytes, encoded);
+        }
+        return null;
     }
 
     private static byte[] extractZipEntry(byte[] zipBytes, String entryName) throws IOException {
@@ -89,6 +123,41 @@ public class ImageExtractionPhase extends ProcessingPhase {
             }
         }
         return null;
+    }
+
+    /**
+     * Decodes percent-encoded characters in a URI (e.g. %20 -> space, %C3%A4 -> ä)
+     * and normalizes to NFC form. Ensures filenames can be compared with user-uploaded
+     * filenames that use real characters, including when Unicode representations differ.
+     */
+    private static String decodeUri(String uri) {
+        if (uri == null || uri.isEmpty()) {
+            return uri;
+        }
+        try {
+            String decoded = URLDecoder.decode(uri, StandardCharsets.UTF_8);
+            return Normalizer.normalize(decoded, Normalizer.Form.NFC);
+        } catch (IllegalArgumentException e) {
+            return uri;
+        }
+    }
+
+    /**
+     * Encodes a URI for ZIP lookup when the ZIP may store percent-encoded entry names.
+     */
+    private static String encodeUriForZipLookup(String uri) {
+        if (uri == null || uri.isEmpty()) {
+            return uri;
+        }
+        String[] segments = uri.split("/", -1);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < segments.length; i++) {
+            if (i > 0) {
+                sb.append('/');
+            }
+            sb.append(URLEncoder.encode(segments[i], StandardCharsets.UTF_8).replace("+", "%20"));
+        }
+        return sb.toString();
     }
 
     private static Document parseXml(byte[] xmlBytes) throws ParserConfigurationException, SAXException, IOException {
@@ -112,8 +181,9 @@ public class ImageExtractionPhase extends ProcessingPhase {
         List<Element> links = findElementsByLocalName(root, "Link");
         for (Element link : links) {
             String uri = link.getAttribute(ATTR_LIN_RESOURCE_URI);
+            String decodedUri = decodeUri(uri != null ? uri : "");
             String format = link.getAttribute(ATTR_LINK_RESOURCE_FORMAT);
-            result.add(new ImageInfo(uri != null ? uri : "", format != null ? format : ""));
+            result.add(new ImageInfo(decodedUri, format != null ? format : ""));
         }
         return result;
     }

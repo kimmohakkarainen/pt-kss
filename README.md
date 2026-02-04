@@ -20,15 +20,16 @@ mvn spring-boot:run
 
 Base URL: `http://localhost:8080` (configurable via `server.port`)
 
-**Processing flow**: Upload → in-progress → (if metadata missing) awaiting-metadata → user fills via PATCH → approve → in-progress → ready.
+**Processing flow**: Upload → in-progress → (if metadata or images missing) awaiting-metadata → user fills via PATCH and/or POST images → approve → in-progress → ready.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/upload` | Upload a zip file for processing |
 | GET | `/api/v1/status/{fileId}` | Check processing status |
-| GET | `/api/v1/pending-metadata` | List files awaiting mandatory metadata |
-| GET | `/api/v1/pending-metadata/{fileId}` | Get metadata and missing fields for a file |
+| GET | `/api/v1/pending-metadata` | List files awaiting mandatory metadata or images |
+| GET | `/api/v1/pending-metadata/{fileId}` | Get metadata, missing fields, and missing images for a file |
 | PATCH | `/api/v1/pending-metadata/{fileId}` | Update metadata for a file |
+| POST | `/api/v1/pending-metadata/{fileId}/images` | Upload image content for a file |
 | POST | `/api/v1/pending-metadata/{fileId}/approve` | Approve and re-queue for processing |
 | GET | `/api/v1/epub/{id}` | Download generated EPUB file |
 
@@ -86,7 +87,7 @@ Check the processing status of an uploaded file. Use the `id` returned from the 
 
 **Status values**: `in-progress`, `awaiting-metadata`, `ready`, `error`
 
-When status is `awaiting-metadata`, the user must fill mandatory EPUB metadata (title, creator, publisher, language, identifier) via the pending-metadata endpoints before processing can continue.
+When status is `awaiting-metadata`, the user must fill mandatory EPUB metadata (title, creator, publisher, language, identifier) and upload any missing image content via the pending-metadata endpoints before processing can continue.
 
 **Success response** (200 OK) – in progress:
 
@@ -144,7 +145,7 @@ curl -v "http://localhost:8080/api/v1/status/abc123"
 
 ### GET `/api/v1/pending-metadata`
 
-List all files that are awaiting mandatory metadata. These files have reached the metadata check phase but are missing required EPUB fields (title, creator, publisher, language, identifier).
+List all files that are awaiting mandatory metadata or image content. These files have reached the metadata check phase but are missing required EPUB fields (title, creator, publisher, language, identifier) and/or image content referenced in the document.
 
 | Attribute | Value |
 |-----------|-------|
@@ -173,7 +174,7 @@ curl -v "http://localhost:8080/api/v1/pending-metadata"
 
 ### GET `/api/v1/pending-metadata/{fileId}`
 
-Get current metadata and list of missing mandatory fields for a file awaiting user input.
+Get current metadata, list of missing mandatory fields, and list of missing image URIs for a file awaiting user input.
 
 | Attribute | Value |
 |-----------|-------|
@@ -194,7 +195,8 @@ Get current metadata and list of missing mandatory fields for a file awaiting us
     "language": null,
     "identifier": null
   },
-  "missingFields": ["title", "creator", "publisher", "language", "identifier"]
+  "missingFields": ["title", "creator", "publisher", "language", "identifier"],
+  "missingImages": ["Resources/Graphic/image1.jpg"]
 }
 ```
 
@@ -220,7 +222,7 @@ Update metadata for a file. All fields are optional; only provided fields are up
 | **Produces** | `application/json` |
 | **Request body** | Optional fields: `title`, `creator`, `publisher`, `language`, `identifier` |
 
-**Success response** (200 OK): Same shape as GET (updated metadata and missingFields).
+**Success response** (200 OK): Same shape as GET (updated metadata, missingFields, and missingImages).
 
 **Error response** (404 Not Found): Pending metadata not found for the given fileId.
 
@@ -234,9 +236,36 @@ curl -v -X PATCH "http://localhost:8080/api/v1/pending-metadata/abc123" \
 
 ---
 
+### POST `/api/v1/pending-metadata/{fileId}/images`
+
+Upload image content for a file awaiting completion. The upload filename must match the last path component of a missing image URI (e.g. URI `Resources/Graphic/image1.jpg` matches filename `image1.jpg`).
+
+| Attribute | Value |
+|-----------|-------|
+| **Method** | `POST` |
+| **Path** | `/api/v1/pending-metadata/{fileId}/images` |
+| **Consumes** | `multipart/form-data` |
+| **Produces** | `application/json` |
+| **Parameter** | `file` – image file part |
+
+**Success response** (200 OK): Same shape as GET (updated metadata, missingFields, and missingImages).
+
+**Error response** (400 Bad Request): Upload filename does not match any missing image URI.
+
+**Error response** (404 Not Found): Pending metadata not found for the given fileId.
+
+**Example**:
+
+```bash
+curl -v -X POST "http://localhost:8080/api/v1/pending-metadata/abc123/images" \
+  -F "file=@./image1.jpg"
+```
+
+---
+
 ### POST `/api/v1/pending-metadata/{fileId}/approve`
 
-Remove the file from the pending store and re-queue it for mandatory metadata check. Processing continues; if metadata is still incomplete, the file returns to pending state.
+Remove the file from the pending store and re-queue it for mandatory metadata and image check. Both metadata and all image content must be complete before approval succeeds.
 
 | Attribute | Value |
 |-----------|-------|
@@ -244,7 +273,9 @@ Remove the file from the pending store and re-queue it for mandatory metadata ch
 | **Path** | `/api/v1/pending-metadata/{fileId}/approve` |
 | **Produces** | `application/json` |
 
-**Success response** (202 Accepted): Empty body; context is re-queued for mandatory metadata check.
+**Success response** (202 Accepted): Empty body; context is re-queued for mandatory check.
+
+**Error response** (400 Bad Request): Metadata or images still missing; cannot approve.
 
 **Error response** (404 Not Found): Pending metadata not found for the given fileId.
 
@@ -292,7 +323,7 @@ On validation or application errors, the API returns JSON in this format:
 
 | HTTP status | Condition |
 |-------------|-----------|
-| 400 Bad Request | Invalid request (e.g. missing file parameter) |
+| 400 Bad Request | Invalid request (e.g. missing file parameter); image filename does not match any missing image; or approve called when metadata/images still missing |
 | 404 Not Found | EPUB not found for given ID; or pending metadata not found (when using pending-metadata endpoints) |
 | 202 Accepted | EPUB not yet ready (processing in progress) |
 | 413 Payload Too Large | File exceeds configured max size |
