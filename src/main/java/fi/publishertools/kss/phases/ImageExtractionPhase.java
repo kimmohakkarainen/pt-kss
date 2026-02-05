@@ -78,18 +78,18 @@ public class ImageExtractionPhase extends ProcessingPhase {
 
         context.setImageList(imageList);
 
-        // Populate imageContent from ZIP for each unique resource URI
-        Set<String> uniqueUris = new LinkedHashSet<>();
+        // Populate imageContent from ZIP for each unique resource URI; key by filename
+        Set<String> processedUris = new LinkedHashSet<>();
         for (ImageInfo info : imageList) {
             String uri = info.resourceUri();
-            if (uri != null && !uri.trim().isEmpty()) {
-                uniqueUris.add(uri);
-            }
-        }
-        for (String uri : uniqueUris) {
-            byte[] bytes = extractZipEntryWithEncodedFallback(zipBytes, uri);
-            if (bytes != null && bytes.length > 0) {
-                context.addImageContent(uri, bytes);
+            String fileName = info.fileName();
+            if (uri != null && !uri.trim().isEmpty() && fileName != null && !fileName.isEmpty()
+                    && !processedUris.contains(uri)) {
+                processedUris.add(uri);
+                byte[] bytes = extractZipEntryWithEncodedFallback(zipBytes, uri);
+                if (bytes != null && bytes.length > 0) {
+                    context.addImageContent(fileName, bytes);
+                }
             }
         }
 
@@ -143,6 +143,28 @@ public class ImageExtractionPhase extends ProcessingPhase {
     }
 
     /**
+     * Extracts the last path segment (filename) from a URI.
+     * Handles edge cases: no slash returns as-is, trailing slash returns empty.
+     */
+    private static String extractFileNameFromUri(String uri) {
+        if (uri == null || uri.isEmpty()) {
+            return uri;
+        }
+        int lastSlash = uri.lastIndexOf('/');
+        return lastSlash >= 0 ? uri.substring(lastSlash + 1) : uri;
+    }
+
+    /**
+     * Normalizes format string: trim and lowercase for consistent comparison.
+     */
+    private static String normalizeFormat(String format) {
+        if (format == null) {
+            return "";
+        }
+        return format.trim().toLowerCase();
+    }
+
+    /**
      * Encodes a URI for ZIP lookup when the ZIP may store percent-encoded entry names.
      */
     private static String encodeUriForZipLookup(String uri) {
@@ -182,8 +204,10 @@ public class ImageExtractionPhase extends ProcessingPhase {
         for (Element link : links) {
             String uri = link.getAttribute(ATTR_LIN_RESOURCE_URI);
             String decodedUri = decodeUri(uri != null ? uri : "");
+            String fileName = extractFileNameFromUri(decodedUri);
             String format = link.getAttribute(ATTR_LINK_RESOURCE_FORMAT);
-            result.add(new ImageInfo(decodedUri, format != null ? format : ""));
+            String normalizedFormat = normalizeFormat(format != null ? format : "");
+            result.add(new ImageInfo(decodedUri, fileName, normalizedFormat));
         }
         return result;
     }

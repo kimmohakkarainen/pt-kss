@@ -70,19 +70,19 @@ public class CheckMandatoryInformationPhase extends ProcessingPhase {
     }
 
     /**
-     * Returns the list of resource URIs that have no image content in the given context.
-     * Returns unique URIs only.
+     * Returns the list of filenames that have no image content in the given context.
+     * Returns unique filenames only.
      */
     public static List<String> getMissingImages(ProcessingContext context) {
         Set<String> missing = new LinkedHashSet<>();
         List<ImageInfo> imageList = context.getImageList();
         if (imageList != null) {
             for (ImageInfo info : imageList) {
-                String uri = info.resourceUri();
-                if (uri != null && !uri.trim().isEmpty()) {
-                    byte[] content = context.getImageContent(uri);
+                String fileName = info.fileName();
+                if (fileName != null && !fileName.trim().isEmpty()) {
+                    byte[] content = context.getImageContent(fileName);
                     if (content == null || content.length == 0) {
-                        missing.add(uri);
+                        missing.add(fileName);
                     }
                 }
             }

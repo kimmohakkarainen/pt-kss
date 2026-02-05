@@ -120,7 +120,7 @@ public class PendingMetadataController {
         ));
     }
 
-    @Operation(summary = "Upload image content", description = "Upload image file for a pending context. Filename must match the last path component of a missing image URI.")
+    @Operation(summary = "Upload image content", description = "Upload image file for a pending context. Filename must match a missing image filename.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Image uploaded, returns updated pending metadata"),
             @ApiResponse(responseCode = "400", description = "Filename does not match any missing image", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -141,25 +141,22 @@ public class PendingMetadataController {
             throw new IllegalArgumentException("Upload filename is required");
         }
         String filenameOnly = Paths.get(uploadFilename.replace('\\', '/')).getFileName().toString();
+        String normalizedUpload = normalizeForComparison(filenameOnly);
 
         List<String> missingImages = CheckMandatoryInformationPhase.getMissingImages(context);
-        String matchedUri = null;
-        for (String uri : missingImages) {
-            String uriFilename = extractFilenameFromUri(uri);
-            if (normalizeForComparison(filenameOnly).equals(normalizeForComparison(uriFilename))) {
-                matchedUri = uri;
+        String matchedFilename = null;
+        for (String missingFilename : missingImages) {
+            if (normalizedUpload.equals(normalizeForComparison(missingFilename))) {
+                matchedFilename = missingFilename;
                 break;
             }
         }
 
-        if (matchedUri == null) {
-            String expected = missingImages.stream()
-                    .map(PendingMetadataController::extractFilenameFromUri)
-                    .collect(Collectors.joining(", "));
-            throw new IllegalArgumentException("Upload filename '" + filenameOnly + "' does not match any missing image. Expected: " + expected);
+        if (matchedFilename == null) {
+            throw new IllegalArgumentException("Upload filename '" + filenameOnly + "' does not match any missing image. Expected: " + String.join(", ", missingImages));
         }
 
-        context.addImageContent(matchedUri, file.getBytes());
+        context.addImageContent(matchedFilename, file.getBytes());
 
         Map<String, Object> metadataMap = buildMetadataMap(context);
         List<String> missingFields = CheckMandatoryInformationPhase.getMissingFields(context);
@@ -199,9 +196,7 @@ public class PendingMetadataController {
                 msg.append("; ");
             }
             if (!missingImages.isEmpty()) {
-                msg.append("missing images: ").append(missingImages.stream()
-                        .map(PendingMetadataController::extractFilenameFromUri)
-                        .collect(Collectors.joining(", ")));
+                msg.append("missing images: ").append(String.join(", ", missingImages));
             }
             throw new IllegalArgumentException(msg.toString());
         }
@@ -209,14 +204,6 @@ public class PendingMetadataController {
         pendingMetadataStore.remove(fileId);
         pipelineService.resubmitForMandatoryCheck(context);
         return ResponseEntity.accepted().build();
-    }
-
-    private static String extractFilenameFromUri(String uri) {
-        if (uri == null || uri.isEmpty()) {
-            return "";
-        }
-        int lastSlash = uri.lastIndexOf('/');
-        return lastSlash >= 0 ? uri.substring(lastSlash + 1) : uri;
     }
 
     /**

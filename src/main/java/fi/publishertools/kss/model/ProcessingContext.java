@@ -98,7 +98,7 @@ public class ProcessingContext {
     }
 
     /**
-     * Returns the map of image content keyed by resource URI.
+     * Returns the map of image content keyed by resolved filename.
      * Images (not embedded in IDML) can be added later via {@link #addImageContent}.
      */
     public Map<String, byte[]> getImageContent() {
@@ -106,19 +106,19 @@ public class ProcessingContext {
     }
 
     /**
-     * Stores actual image bytes for the given resource URI.
+     * Stores actual image bytes for the given filename (resolved from resource URI at extraction).
      */
-    public void addImageContent(String resourceUri, byte[] content) {
-        if (resourceUri != null && content != null) {
-            this.imageContent.put(resourceUri, content);
+    public void addImageContent(String fileName, byte[] content) {
+        if (fileName != null && content != null) {
+            this.imageContent.put(fileName, content);
         }
     }
 
     /**
-     * Returns image bytes for the given resource URI, or null if not present.
+     * Returns image bytes for the given filename, or null if not present.
      */
-    public byte[] getImageContent(String resourceUri) {
-        return resourceUri != null ? this.imageContent.get(resourceUri) : null;
+    public byte[] getImageContent(String fileName) {
+        return fileName != null ? this.imageContent.get(fileName) : null;
     }
 
     public byte [] getXhtmlContent() {
