@@ -3,6 +3,7 @@ package fi.publishertools.kss.phases;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +35,7 @@ public class AssembleEpubPhase extends ProcessingPhase {
     private static final String CONTENT_OPF_PATH = "OEBPS/contents.opf";
     private static final String XHTML_PATH = "OEBPS/Koottu-1.xhtml";
     private static final String TOC_PATH = "OEBPS/toc.xhtml";
+    private static final String IMAGES_DIR = "OEBPS/images/";
 
     @Override
     public void process(ProcessingContext context) throws Exception {
@@ -96,8 +98,22 @@ public class AssembleEpubPhase extends ProcessingPhase {
                 zos.write(tocContent);
             }
             zos.closeEntry();
-            
-            
+
+            // Entry 6+: OEBPS/images/{filename} for each image in imageContent
+            Map<String, byte[]> imageContent = context.getImageContent();
+            if (imageContent != null && !imageContent.isEmpty()) {
+                for (Map.Entry<String, byte[]> entry : imageContent.entrySet()) {
+                    String filename = entry.getKey();
+                    byte[] imageBytes = entry.getValue();
+                    if (filename != null && imageBytes != null && imageBytes.length > 0) {
+                        ZipEntry imageEntry = new ZipEntry(IMAGES_DIR + filename);
+                        zos.putNextEntry(imageEntry);
+                        zos.write(imageBytes);
+                        zos.closeEntry();
+                    }
+                }
+            }
+
             zos.finish();
 
             byte[] epubBytes = baos.toByteArray();

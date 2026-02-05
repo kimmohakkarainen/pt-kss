@@ -2,6 +2,7 @@ package fi.publishertools.kss.phases;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
     	
         logger.debug("Creating package.opf for file {}", context.getFileId());
 
-        byte [] opfBytes = PackageOpf.Builder
+        PackageOpf.Builder builder = PackageOpf.Builder
         		.title(context.getOriginalFilename())
         		.setVersion("3.0")
         		.setXmlLang("FI")
@@ -48,8 +49,20 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
         		.addMetaItem(DCLanguage.create(context.getMetadata("language", String.class)))
         		.addMetaItem(MetaItem.createProperty("dcterms:modified", LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss'Z'"))))
 				.addManifestItem("toc", "toc.xhtml", "application/xhtml+xml", "nav")
-        		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false)
-        		.build();
+        		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false);
+
+        Map<String, byte[]> imageContent = context.getImageContent();
+        if (imageContent != null && !imageContent.isEmpty()) {
+            int index = 0;
+            for (Map.Entry<String, byte[]> entry : imageContent.entrySet()) {
+                String filename = entry.getKey();
+                String mimeType = ImageExtractionPhase.getMimeTypeFromFilename(filename);
+                builder = builder.addManifestItem("img-" + index, "images/" + filename, mimeType, null);
+                index++;
+            }
+        }
+
+        byte [] opfBytes = builder.build();
         context.setPackageObf(opfBytes);
 
         logger.debug("Created package.opf ({} bytes) for file {}", opfBytes.length, context.getFileId());

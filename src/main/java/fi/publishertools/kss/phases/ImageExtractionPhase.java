@@ -165,6 +165,29 @@ public class ImageExtractionPhase extends ProcessingPhase {
     }
 
     /**
+     * Returns MIME type for an image based on filename extension.
+     * Comparison is case-insensitive. Returns application/octet-stream for unknown extensions.
+     */
+    public static String getMimeTypeFromFilename(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return "application/octet-stream";
+        }
+        int dot = filename.lastIndexOf('.');
+        if (dot < 0 || dot == filename.length() - 1) {
+            return "application/octet-stream";
+        }
+        String ext = filename.substring(dot + 1).toLowerCase();
+        return switch (ext) {
+            case "jpg", "jpeg" -> "image/jpeg";
+            case "png" -> "image/png";
+            case "gif" -> "image/gif";
+            case "svg" -> "image/svg+xml";
+            case "webp" -> "image/webp";
+            default -> "application/octet-stream";
+        };
+    }
+
+    /**
      * Encodes a URI for ZIP lookup when the ZIP may store percent-encoded entry names.
      */
     private static String encodeUriForZipLookup(String uri) {

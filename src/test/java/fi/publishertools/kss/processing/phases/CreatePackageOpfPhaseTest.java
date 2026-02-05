@@ -43,5 +43,41 @@ class CreatePackageOpfPhaseTest {
         assertThat(xml).contains("<metadata>");
         assertThat(xml).contains("<manifest>");
     }
+
+    @Test
+    @DisplayName("CreatePackageOpfPhase adds manifest items for images in imageContent")
+    void createPackageOpfAddsImageManifestItems() throws Exception {
+        StoredFile storedFile = new StoredFile(
+                "file-id-123",
+                "example.idml",
+                "application/zip",
+                0L,
+                java.time.Instant.now(),
+                new byte[0]
+        );
+        ProcessingContext context = new ProcessingContext(storedFile);
+        context.addMetadata("identifier", "test-id");
+        context.addMetadata("title", "Test Title");
+        context.addMetadata("creator", "Test Author");
+        context.addMetadata("publisher", "Test Publisher");
+        context.addMetadata("language", "fi");
+        context.addImageContent("cover.png", new byte[] { 1, 2, 3 });
+        context.addImageContent("photo.jpg", new byte[] { 4, 5, 6 });
+
+        CreatePackageOpfPhase phase = new CreatePackageOpfPhase();
+        phase.process(context);
+
+        byte[] opfBytes = context.getPackageOpf();
+        assertThat(opfBytes).as("packageOpf").isNotNull();
+        assertThat(opfBytes.length).as("packageOpf length").isGreaterThan(0);
+
+        String xml = new String(opfBytes, StandardCharsets.UTF_8);
+        assertThat(xml).contains("images/cover.png");
+        assertThat(xml).contains("images/photo.jpg");
+        assertThat(xml).contains("image/png");
+        assertThat(xml).contains("image/jpeg");
+        assertThat(xml).contains("id=\"img-0\"");
+        assertThat(xml).contains("id=\"img-1\"");
+    }
 }
 
