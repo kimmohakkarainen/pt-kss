@@ -1,4 +1,4 @@
-package fi.publishertools.kss.model;
+package fi.publishertools.kss.exception;
 
 /**
  * Thrown when a requested file ID is not found in the pending metadata store.

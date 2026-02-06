@@ -9,9 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fi.publishertools.kss.model.MandatoryMetadataMissingException;
+import fi.publishertools.kss.exception.MandatoryMetadataMissingException;
 import fi.publishertools.kss.model.ProcessingContext;
-import fi.publishertools.kss.model.ProcessingStatus;
 import fi.publishertools.kss.service.PendingMetadataStore;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;

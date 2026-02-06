@@ -9,11 +9,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.StatusResponse;
-import fi.publishertools.kss.model.EpubNotFoundException;
-import fi.publishertools.kss.model.PendingMetadataNotFoundException;
-import fi.publishertools.kss.model.FileTooLargeException;
-import fi.publishertools.kss.model.InvalidContentTypeException;
-import fi.publishertools.kss.model.ProcessingNotCompletedException;
+import fi.publishertools.kss.exception.EpubNotFoundException;
+import fi.publishertools.kss.exception.FileTooLargeException;
+import fi.publishertools.kss.exception.InvalidContentTypeException;
+import fi.publishertools.kss.exception.PendingMetadataNotFoundException;
+import fi.publishertools.kss.exception.ProcessingNotCompletedException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @ControllerAdvice

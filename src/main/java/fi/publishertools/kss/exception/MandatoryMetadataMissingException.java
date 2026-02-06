@@ -1,4 +1,6 @@
-package fi.publishertools.kss.model;
+package fi.publishertools.kss.exception;
+
+import fi.publishertools.kss.model.ProcessingContext;
 
 /**
  * Thrown when mandatory metadata fields are missing from ProcessingContext.

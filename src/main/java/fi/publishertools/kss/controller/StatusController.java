@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fi.publishertools.kss.dto.StatusResponse;
 import fi.publishertools.kss.model.ProcessedResult;
+import fi.publishertools.kss.processing.ProcessingStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import fi.publishertools.kss.model.ProcessingStatus;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;
 

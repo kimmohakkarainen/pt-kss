@@ -11,9 +11,9 @@ import fi.publishertools.kss.processing.ProcessingPhase;
 /**
  * Phase 3: Finalize output by adding finalization timestamp and preparing final JSON structure.
  */
-public class FinalizationPhase extends ProcessingPhase {
+public class C5_Finalization extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(FinalizationPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(C5_Finalization.class);
 
     @Override
     public void process(ProcessingContext context) throws Exception {

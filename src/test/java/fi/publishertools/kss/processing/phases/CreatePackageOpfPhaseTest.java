@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.CreatePackageOpfPhase;
+import fi.publishertools.kss.phases.C3_CreatePackageOpf;
 
 class CreatePackageOpfPhaseTest {
 
@@ -27,7 +27,7 @@ class CreatePackageOpfPhaseTest {
         );
         ProcessingContext context = new ProcessingContext(storedFile);
 
-        CreatePackageOpfPhase phase = new CreatePackageOpfPhase();
+        C3_CreatePackageOpf phase = new C3_CreatePackageOpf();
         phase.process(context);
 
         byte[] opfBytes = context.getMetadata("packageOpf", byte[].class);
@@ -64,7 +64,7 @@ class CreatePackageOpfPhaseTest {
         context.addImageContent("cover.png", new byte[] { 1, 2, 3 });
         context.addImageContent("photo.jpg", new byte[] { 4, 5, 6 });
 
-        CreatePackageOpfPhase phase = new CreatePackageOpfPhase();
+        C3_CreatePackageOpf phase = new C3_CreatePackageOpf();
         phase.process(context);
 
         byte[] opfBytes = context.getPackageOpf();

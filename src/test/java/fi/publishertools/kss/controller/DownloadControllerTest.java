@@ -15,9 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import fi.publishertools.kss.exception.EpubNotFoundException;
+import fi.publishertools.kss.exception.ProcessingNotCompletedException;
 import fi.publishertools.kss.model.DownloadableFile;
-import fi.publishertools.kss.model.EpubNotFoundException;
-import fi.publishertools.kss.model.ProcessingNotCompletedException;
 import fi.publishertools.kss.service.EpubDownloadService;
 
 @WebMvcTest(DownloadController.class)

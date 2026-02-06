@@ -28,9 +28,9 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  *     <li>Contains minimal, mostly empty {@code &lt;metadata&gt;} and {@code &lt;manifest&gt;} elements</li>
  * </ul>
  */
-public class CreatePackageOpfPhase extends ProcessingPhase {
+public class C3_CreatePackageOpf extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreatePackageOpfPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(C3_CreatePackageOpf.class);
 
     @Override
     public void process(ProcessingContext context) throws Exception {
@@ -56,7 +56,7 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
             int index = 0;
             for (Map.Entry<String, byte[]> entry : imageContent.entrySet()) {
                 String filename = entry.getKey();
-                String mimeType = ImageExtractionPhase.getMimeTypeFromFilename(filename);
+                String mimeType = A3_ExtractImageInfo.getMimeTypeFromFilename(filename);
                 builder = builder.addManifestItem("img-" + index, "images/" + filename, mimeType, null);
                 index++;
             }

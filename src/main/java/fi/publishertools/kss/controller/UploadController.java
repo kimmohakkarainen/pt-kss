@@ -13,12 +13,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.UploadResponse;
+import fi.publishertools.kss.exception.InvalidContentTypeException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import fi.publishertools.kss.model.InvalidContentTypeException;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.service.UploadService;
 

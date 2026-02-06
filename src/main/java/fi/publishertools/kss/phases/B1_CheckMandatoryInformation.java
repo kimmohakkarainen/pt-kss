@@ -10,8 +10,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fi.publishertools.kss.exception.MandatoryMetadataMissingException;
 import fi.publishertools.kss.model.ImageInfo;
-import fi.publishertools.kss.model.MandatoryMetadataMissingException;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
@@ -20,9 +20,9 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * If any are missing, throws MandatoryMetadataMissingException so the pipeline
  * can store the context for user interaction.
  */
-public class CheckMandatoryInformationPhase extends ProcessingPhase {
+public class B1_CheckMandatoryInformation extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(CheckMandatoryInformationPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(B1_CheckMandatoryInformation.class);
 
     private static final List<String> MANDATORY_KEYS = Arrays.asList(
             "title", "creator", "publisher", "language", "identifier"

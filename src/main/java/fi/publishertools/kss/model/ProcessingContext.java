@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fi.publishertools.kss.model.content.ChapterNode;
+
 /**
  * Context object that carries file data and metadata through processing phases.
  */

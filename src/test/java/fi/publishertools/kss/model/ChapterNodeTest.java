@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
+import fi.publishertools.kss.model.content.StoryNode;
+
 class ChapterNodeTest {
 
     @Test

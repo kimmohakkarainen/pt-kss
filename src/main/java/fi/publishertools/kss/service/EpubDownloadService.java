@@ -2,11 +2,11 @@ package fi.publishertools.kss.service;
 
 import org.springframework.stereotype.Service;
 
+import fi.publishertools.kss.exception.EpubNotFoundException;
+import fi.publishertools.kss.exception.ProcessingNotCompletedException;
 import fi.publishertools.kss.model.DownloadableFile;
-import fi.publishertools.kss.model.EpubNotFoundException;
 import fi.publishertools.kss.model.ProcessedResult;
-import fi.publishertools.kss.model.ProcessingNotCompletedException;
-import fi.publishertools.kss.model.ProcessingStatus;
+import fi.publishertools.kss.processing.ProcessingStatus;
 
 /**
  * Service for retrieving ready-made EPUB files by upload/processing ID.

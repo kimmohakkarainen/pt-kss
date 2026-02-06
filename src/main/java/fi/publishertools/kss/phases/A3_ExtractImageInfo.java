@@ -24,9 +24,9 @@ import fi.publishertools.kss.util.ZipUtils;
  * processing context storiesList, parses each, finds Link elements, and extracts
  * LinkResourceURI and LinkResourceFormat attributes into imageList.
  */
-public class ImageExtractionPhase extends ProcessingPhase {
+public class A3_ExtractImageInfo extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(ImageExtractionPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(A3_ExtractImageInfo.class);
 
     private static final String ATTR_LINK_RESOURCE_URI = "LinkResourceURI";
     private static final String ATTR_LINK_RESOURCE_FORMAT = "LinkResourceFormat";

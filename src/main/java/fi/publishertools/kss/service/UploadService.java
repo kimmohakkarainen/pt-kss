@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import fi.publishertools.kss.UploadProperties;
-import fi.publishertools.kss.model.FileTooLargeException;
+import fi.publishertools.kss.exception.FileTooLargeException;
 import fi.publishertools.kss.model.StoredFile;
 
 @Service

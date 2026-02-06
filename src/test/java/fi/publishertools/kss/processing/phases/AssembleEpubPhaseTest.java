@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.AssembleEpubPhase;
+import fi.publishertools.kss.phases.C4_AssembleEPUB;
 
 class AssembleEpubPhaseTest {
 
@@ -29,7 +29,7 @@ class AssembleEpubPhaseTest {
         );
         ProcessingContext context = new ProcessingContext(storedFile);
 
-        AssembleEpubPhase phase = new AssembleEpubPhase();
+        C4_AssembleEPUB phase = new C4_AssembleEPUB();
         phase.process(context);
 
         byte[] epubBytes = context.getMetadata("epubFile", byte[].class);
@@ -78,7 +78,7 @@ class AssembleEpubPhaseTest {
         context.addImageContent("cover.png", pngContent);
         context.addImageContent("photo.jpg", new byte[] { (byte) 0xFF, (byte) 0xD8 });
 
-        AssembleEpubPhase phase = new AssembleEpubPhase();
+        C4_AssembleEPUB phase = new C4_AssembleEPUB();
         phase.process(context);
 
         byte[] epubBytes = context.getMetadata("epubFile", byte[].class);

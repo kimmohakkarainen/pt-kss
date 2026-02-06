@@ -24,9 +24,9 @@ import fi.publishertools.kss.dto.ErrorResponse;
 import fi.publishertools.kss.dto.PendingMetadataResponse;
 import fi.publishertools.kss.dto.PendingMetadataSummary;
 import fi.publishertools.kss.dto.PendingMetadataUpdateRequest;
-import fi.publishertools.kss.model.PendingMetadataNotFoundException;
+import fi.publishertools.kss.exception.PendingMetadataNotFoundException;
 import fi.publishertools.kss.model.ProcessingContext;
-import fi.publishertools.kss.phases.CheckMandatoryInformationPhase;
+import fi.publishertools.kss.phases.B1_CheckMandatoryInformation;
 import fi.publishertools.kss.service.PendingMetadataStore;
 import fi.publishertools.kss.service.ProcessingPipelineService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -78,8 +78,8 @@ public class PendingMetadataController {
                 .orElseThrow(() -> new PendingMetadataNotFoundException("Pending metadata not found for file: " + fileId));
 
         Map<String, Object> metadataMap = buildMetadataMap(context);
-        List<String> missingFields = CheckMandatoryInformationPhase.getMissingFields(context);
-        List<String> missingImages = CheckMandatoryInformationPhase.getMissingImages(context);
+        List<String> missingFields = B1_CheckMandatoryInformation.getMissingFields(context);
+        List<String> missingImages = B1_CheckMandatoryInformation.getMissingImages(context);
 
         return ResponseEntity.ok(new PendingMetadataResponse(
                 context.getFileId(),
@@ -108,8 +108,8 @@ public class PendingMetadataController {
         applyUpdates(context, request);
 
         Map<String, Object> metadataMap = buildMetadataMap(context);
-        List<String> missingFields = CheckMandatoryInformationPhase.getMissingFields(context);
-        List<String> missingImages = CheckMandatoryInformationPhase.getMissingImages(context);
+        List<String> missingFields = B1_CheckMandatoryInformation.getMissingFields(context);
+        List<String> missingImages = B1_CheckMandatoryInformation.getMissingImages(context);
 
         return ResponseEntity.ok(new PendingMetadataResponse(
                 context.getFileId(),
@@ -143,7 +143,7 @@ public class PendingMetadataController {
         String filenameOnly = Paths.get(uploadFilename.replace('\\', '/')).getFileName().toString();
         String normalizedUpload = normalizeForComparison(filenameOnly);
 
-        List<String> missingImages = CheckMandatoryInformationPhase.getMissingImages(context);
+        List<String> missingImages = B1_CheckMandatoryInformation.getMissingImages(context);
         String matchedFilename = null;
         for (String missingFilename : missingImages) {
             if (normalizedUpload.equals(normalizeForComparison(missingFilename))) {
@@ -159,8 +159,8 @@ public class PendingMetadataController {
         context.addImageContent(matchedFilename, file.getBytes());
 
         Map<String, Object> metadataMap = buildMetadataMap(context);
-        List<String> missingFields = CheckMandatoryInformationPhase.getMissingFields(context);
-        List<String> updatedMissingImages = CheckMandatoryInformationPhase.getMissingImages(context);
+        List<String> missingFields = B1_CheckMandatoryInformation.getMissingFields(context);
+        List<String> updatedMissingImages = B1_CheckMandatoryInformation.getMissingImages(context);
 
         return ResponseEntity.ok(new PendingMetadataResponse(
                 context.getFileId(),
@@ -185,8 +185,8 @@ public class PendingMetadataController {
         ProcessingContext context = pendingMetadataStore.get(fileId)
                 .orElseThrow(() -> new PendingMetadataNotFoundException("Pending metadata not found for file: " + fileId));
 
-        List<String> missingFields = CheckMandatoryInformationPhase.getMissingFields(context);
-        List<String> missingImages = CheckMandatoryInformationPhase.getMissingImages(context);
+        List<String> missingFields = B1_CheckMandatoryInformation.getMissingFields(context);
+        List<String> missingImages = B1_CheckMandatoryInformation.getMissingImages(context);
         if (!missingFields.isEmpty() || !missingImages.isEmpty()) {
             StringBuilder msg = new StringBuilder("Cannot approve: ");
             if (!missingFields.isEmpty()) {
@@ -219,7 +219,7 @@ public class PendingMetadataController {
 
     private Map<String, Object> buildMetadataMap(ProcessingContext context) {
         Map<String, Object> result = new HashMap<>();
-        for (String key : CheckMandatoryInformationPhase.getMandatoryKeys()) {
+        for (String key : B1_CheckMandatoryInformation.getMandatoryKeys()) {
             String value = context.getMetadata(key, String.class);
             result.put(key, value);
         }

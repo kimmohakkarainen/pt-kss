@@ -8,19 +8,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import fi.publishertools.kss.model.ProcessingContext;
-import fi.publishertools.kss.model.ProcessingStatus;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.AssembleEpubPhase;
-import fi.publishertools.kss.phases.CheckMandatoryInformationPhase;
-import fi.publishertools.kss.phases.CreatePackageOpfPhase;
-import fi.publishertools.kss.phases.ExtractChaptersPhase;
-import fi.publishertools.kss.phases.ExtractStoriesPhase;
-import fi.publishertools.kss.phases.ImageExtractionPhase;
-import fi.publishertools.kss.phases.FinalizationPhase;
-import fi.publishertools.kss.phases.GenerateTOCPhase;
-import fi.publishertools.kss.phases.GenerateXHTMLPhase;
+import fi.publishertools.kss.phases.C4_AssembleEPUB;
+import fi.publishertools.kss.phases.B1_CheckMandatoryInformation;
+import fi.publishertools.kss.phases.C3_CreatePackageOpf;
+import fi.publishertools.kss.phases.A2_ExtractChapters;
+import fi.publishertools.kss.phases.A1_ExtractStories;
+import fi.publishertools.kss.phases.A3_ExtractImageInfo;
+import fi.publishertools.kss.phases.C5_Finalization;
+import fi.publishertools.kss.phases.C2_GenerateTableOfContents;
+import fi.publishertools.kss.phases.C1_GenerateXHTML;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.processing.ProcessingPipeline;
+import fi.publishertools.kss.processing.ProcessingStatus;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -113,15 +113,15 @@ public class ProcessingPipelineService {
 
     private List<ProcessingPhase> createPhases() {
         List<ProcessingPhase> phases = new ArrayList<>();
-        phases.add(new ExtractStoriesPhase());
-        phases.add(new ExtractChaptersPhase());
-        phases.add(new ImageExtractionPhase());
-        phases.add(new CheckMandatoryInformationPhase());
-        phases.add(new GenerateXHTMLPhase());
-        phases.add(new GenerateTOCPhase());
-        phases.add(new CreatePackageOpfPhase());
-        phases.add(new AssembleEpubPhase());
-        phases.add(new FinalizationPhase());
+        phases.add(new A1_ExtractStories());
+        phases.add(new A2_ExtractChapters());
+        phases.add(new A3_ExtractImageInfo());
+        phases.add(new B1_CheckMandatoryInformation());
+        phases.add(new C1_GenerateXHTML());
+        phases.add(new C2_GenerateTableOfContents());
+        phases.add(new C3_CreatePackageOpf());
+        phases.add(new C4_AssembleEPUB());
+        phases.add(new C5_Finalization());
         logger.info("Created {} processing phases", phases.size());
         return phases;
     }

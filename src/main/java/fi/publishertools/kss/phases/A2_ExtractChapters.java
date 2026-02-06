@@ -10,12 +10,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import fi.publishertools.kss.model.ChapterNode;
-import fi.publishertools.kss.model.CharacterStyleRangeNode;
-import fi.publishertools.kss.model.ImageNode;
-import fi.publishertools.kss.model.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.ProcessingContext;
-import fi.publishertools.kss.model.StoryNode;
+import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.CharacterStyleRangeNode;
+import fi.publishertools.kss.model.content.ImageNode;
+import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
+import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
 import fi.publishertools.kss.util.ZipUtils;
@@ -28,9 +28,9 @@ import fi.publishertools.kss.util.ZipUtils;
  *   <li>CharacterStyleRange is same level as siblings; creates text/image leaves with AppliedCharacterStyle</li>
  * </ul>
  */
-public class ExtractChaptersPhase extends ProcessingPhase {
+public class A2_ExtractChapters extends ProcessingPhase {
 
-	private static final Logger logger = LoggerFactory.getLogger(ExtractChaptersPhase.class);
+	private static final Logger logger = LoggerFactory.getLogger(A2_ExtractChapters.class);
 
 	private static final String ATTR_LINK_RESOURCE_URI = "LinkResourceURI";
 	private static final String ATTR_APPLIED_TOC_STYLE = "AppliedTOCStyle";

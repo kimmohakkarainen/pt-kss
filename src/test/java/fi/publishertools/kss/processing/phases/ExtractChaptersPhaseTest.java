@@ -10,12 +10,12 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import fi.publishertools.kss.model.ChapterNode;
-import fi.publishertools.kss.model.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.ProcessingContext;
-import fi.publishertools.kss.model.StoryNode;
+import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
+import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.ExtractChaptersPhase;
+import fi.publishertools.kss.phases.A2_ExtractChapters;
 
 class ExtractChaptersPhaseTest {
 
@@ -43,7 +43,7 @@ class ExtractChaptersPhaseTest {
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
         ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
 
-        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();
@@ -73,7 +73,7 @@ class ExtractChaptersPhaseTest {
         byte[] zipBytes = new byte[0];
         ProcessingContext context = createContext(zipBytes, null);
 
-        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
 
         assertThat(context.getChapters()).isEmpty();
@@ -108,7 +108,7 @@ class ExtractChaptersPhaseTest {
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
         ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
 
-        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();
@@ -148,7 +148,7 @@ class ExtractChaptersPhaseTest {
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
         ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
 
-        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();
@@ -186,7 +186,7 @@ class ExtractChaptersPhaseTest {
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
         ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
 
-        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();

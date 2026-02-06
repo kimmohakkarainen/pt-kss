@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 import fi.publishertools.kss.model.ProcessedResult;
-import fi.publishertools.kss.model.ProcessingStatus;
+import fi.publishertools.kss.processing.ProcessingStatus;
 
 /**
  * Thread-safe store for final processed results.

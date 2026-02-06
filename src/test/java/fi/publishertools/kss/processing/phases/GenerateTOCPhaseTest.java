@@ -8,10 +8,10 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.GenerateTOCPhase;
+import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.phases.C2_GenerateTableOfContents;
 
 class GenerateTOCPhaseTest {
 
@@ -25,7 +25,7 @@ class GenerateTOCPhaseTest {
         ));
         context.addMetadata("language", "fi");
 
-        GenerateTOCPhase phase = new GenerateTOCPhase();
+        C2_GenerateTableOfContents phase = new C2_GenerateTableOfContents();
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);
@@ -44,7 +44,7 @@ class GenerateTOCPhaseTest {
         ));
         context.addMetadata("language", "en");
 
-        GenerateTOCPhase phase = new GenerateTOCPhase();
+        C2_GenerateTableOfContents phase = new C2_GenerateTableOfContents();
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);
@@ -63,7 +63,7 @@ class GenerateTOCPhaseTest {
         ));
         context.addMetadata("language", "en");
 
-        GenerateTOCPhase phase = new GenerateTOCPhase();
+        C2_GenerateTableOfContents phase = new C2_GenerateTableOfContents();
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);
@@ -81,7 +81,7 @@ class GenerateTOCPhaseTest {
         context.setChapters(List.of());
         context.addMetadata("language", "en");
 
-        GenerateTOCPhase phase = new GenerateTOCPhase();
+        C2_GenerateTableOfContents phase = new C2_GenerateTableOfContents();
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);

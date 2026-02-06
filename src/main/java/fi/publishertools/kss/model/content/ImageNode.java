@@ -1,4 +1,4 @@
-package fi.publishertools.kss.model;
+package fi.publishertools.kss.model.content;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

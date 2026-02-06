@@ -7,8 +7,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.content.ChapterNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
 
@@ -17,9 +17,9 @@ import fi.publishertools.kss.util.XmlUtils;
  * Uses chapters from the context to build a nav element with epub:type="toc"
  * and links to each section in the main content. Supports nested structure.
  */
-public class GenerateTOCPhase extends ProcessingPhase {
+public class C2_GenerateTableOfContents extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenerateTOCPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(C2_GenerateTableOfContents.class);
 
     private static final String XHTML_NS = "http://www.w3.org/1999/xhtml";
     private static final String EPUB_NS = "http://www.idpf.org/2007/ops";

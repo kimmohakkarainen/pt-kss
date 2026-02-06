@@ -7,8 +7,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.content.ChapterNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
 
@@ -16,9 +16,9 @@ import fi.publishertools.kss.util.XmlUtils;
  * Takes the chapters from the context and generates a single XHTML document.
  * Renders ChapterNode hierarchy: text as paragraphs, images as figures, sections with optional titles.
  */
-public class GenerateXHTMLPhase extends ProcessingPhase {
+public class C1_GenerateXHTML extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenerateXHTMLPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(C1_GenerateXHTML.class);
 
     private static final String XHTML_NS = "http://www.w3.org/1999/xhtml";
     private static final String IMAGES_PATH = "images/";

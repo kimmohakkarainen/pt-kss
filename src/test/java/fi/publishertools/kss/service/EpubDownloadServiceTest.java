@@ -16,11 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import fi.publishertools.kss.exception.EpubNotFoundException;
+import fi.publishertools.kss.exception.ProcessingNotCompletedException;
 import fi.publishertools.kss.model.DownloadableFile;
-import fi.publishertools.kss.model.EpubNotFoundException;
 import fi.publishertools.kss.model.ProcessedResult;
-import fi.publishertools.kss.model.ProcessingNotCompletedException;
-import fi.publishertools.kss.model.ProcessingStatus;
+import fi.publishertools.kss.processing.ProcessingStatus;
 
 @ExtendWith(MockitoExtension.class)
 class EpubDownloadServiceTest {

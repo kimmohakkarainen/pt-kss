@@ -3,6 +3,8 @@ package fi.publishertools.kss.model;
 import java.time.Instant;
 import java.util.Map;
 
+import fi.publishertools.kss.processing.ProcessingStatus;
+
 /**
  * Final processed result stored after all phases complete.
  */

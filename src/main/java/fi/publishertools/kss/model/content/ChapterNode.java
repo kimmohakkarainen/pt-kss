@@ -1,4 +1,4 @@
-package fi.publishertools.kss.model;
+package fi.publishertools.kss.model.content;
 
 import java.util.Collections;
 import java.util.List;

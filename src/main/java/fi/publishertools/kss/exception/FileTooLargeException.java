@@ -1,4 +1,4 @@
-package fi.publishertools.kss.model;
+package fi.publishertools.kss.exception;
 
 public class FileTooLargeException extends RuntimeException {
 

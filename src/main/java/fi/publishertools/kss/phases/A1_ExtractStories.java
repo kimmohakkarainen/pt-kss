@@ -20,9 +20,9 @@ import fi.publishertools.kss.util.ZipUtils;
  * if media-type is "text/xml", extract the file at full-path, parse it, collect Story src
  * attributes, and pass the list to the next phase.
  */
-public class ExtractStoriesPhase extends ProcessingPhase {
+public class A1_ExtractStories extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExtractStoriesPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(A1_ExtractStories.class);
 
     private static final String CONTAINER_PATH = "META-INF/container.xml";
     private static final String CONTAINER_NS = "urn:oasis:names:tc:opendocument:xmlns:container";

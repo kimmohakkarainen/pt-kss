@@ -25,9 +25,9 @@ import fi.publishertools.kss.processing.ProcessingPhase;
  * </ul>
  * The resulting ZIP bytes are stored into {@link ProcessingContext} metadata under key {@code "epubFile"}.
  */
-public class AssembleEpubPhase extends ProcessingPhase {
+public class C4_AssembleEPUB extends ProcessingPhase {
 
-    private static final Logger logger = LoggerFactory.getLogger(AssembleEpubPhase.class);
+    private static final Logger logger = LoggerFactory.getLogger(C4_AssembleEPUB.class);
 
     private static final String MIMETYPE_ENTRY_NAME = "mimetype";
     private static final String MIMETYPE_CONTENT = "application/epub+zip";

@@ -8,10 +8,10 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
-import fi.publishertools.kss.phases.GenerateXHTMLPhase;
+import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.phases.C1_GenerateXHTML;
 
 class GenerateXHTMLPhaseTest {
 
@@ -25,7 +25,7 @@ class GenerateXHTMLPhaseTest {
         ));
         context.addMetadata("language", "fi");
 
-        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        C1_GenerateXHTML phase = new C1_GenerateXHTML();
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
@@ -43,7 +43,7 @@ class GenerateXHTMLPhaseTest {
         context.setChapters(List.of(ChapterNode.image("photo.jpg")));
         context.addMetadata("language", "en");
 
-        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        C1_GenerateXHTML phase = new C1_GenerateXHTML();
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
@@ -62,7 +62,7 @@ class GenerateXHTMLPhaseTest {
         ));
         context.addMetadata("language", "en");
 
-        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        C1_GenerateXHTML phase = new C1_GenerateXHTML();
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
@@ -78,7 +78,7 @@ class GenerateXHTMLPhaseTest {
         context.setChapters(List.of());
         context.addMetadata("language", "en");
 
-        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        C1_GenerateXHTML phase = new C1_GenerateXHTML();
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
@@ -99,7 +99,7 @@ class GenerateXHTMLPhaseTest {
         ));
         context.addMetadata("language", "en");
 
-        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        C1_GenerateXHTML phase = new C1_GenerateXHTML();
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
