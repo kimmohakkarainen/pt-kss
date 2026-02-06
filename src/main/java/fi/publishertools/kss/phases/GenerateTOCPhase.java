@@ -1,5 +1,6 @@
 package fi.publishertools.kss.phases;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
+import fi.publishertools.kss.util.XmlUtils;
 
 /**
  * Generates XHTML table-of-contents content for the EPUB.
@@ -40,7 +42,7 @@ public class GenerateTOCPhase extends ProcessingPhase {
         String langAttr = language != null ? language : "";
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<html xmlns=\"" + XHTML_NS + "\" xmlns:epub=\"" + EPUB_NS + "\" lang=\"" + escapeXml(langAttr) + "\" xml:lang=\"" + escapeXml(langAttr) + "\">\n"
+                + "<html xmlns=\"" + XHTML_NS + "\" xmlns:epub=\"" + EPUB_NS + "\" lang=\"" + XmlUtils.escapeXml(langAttr) + "\" xml:lang=\"" + XmlUtils.escapeXml(langAttr) + "\">\n"
                 + "  <head>\n"
                 + "    <meta charset=\"UTF-8\"/>\n"
                 + "    <title>Table of Contents</title>\n"
@@ -55,7 +57,7 @@ public class GenerateTOCPhase extends ProcessingPhase {
                 + "  </body>\n"
                 + "</html>";
 
-        context.setTocContent(xhtml.getBytes("utf-8"));
+        context.setTocContent(xhtml.getBytes(StandardCharsets.UTF_8));
         logger.debug("Generated TOC with {} entries for file {}", builder.count(), context.getFileId());
     }
 
@@ -70,28 +72,17 @@ public class GenerateTOCPhase extends ProcessingPhase {
                     : "Chapter " + sectionNum;
             String href = CONTENT_FILE + "#section-" + sectionNum;
             if (node.isContainer()) {
-                out.append("        <li><a href=\"").append(escapeXml(href)).append("\">")
-                        .append(escapeXml(label)).append("</a>\n");
+                out.append("        <li><a href=\"").append(XmlUtils.escapeXml(href)).append("\">")
+                        .append(XmlUtils.escapeXml(label)).append("</a>\n");
                 out.append("          <ol>\n");
                 buildToc(node.children(), out, builder);
                 out.append("          </ol>\n");
                 out.append("        </li>\n");
             } else {
-                out.append("        <li><a href=\"").append(escapeXml(href)).append("\">")
-                        .append(escapeXml(label)).append("</a></li>\n");
+                out.append("        <li><a href=\"").append(XmlUtils.escapeXml(href)).append("\">")
+                        .append(XmlUtils.escapeXml(label)).append("</a></li>\n");
             }
         }
-    }
-
-    private static String escapeXml(String s) {
-        if (s == null) {
-            return "";
-        }
-        return s.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;");
     }
 
     private static class TocBuilder {

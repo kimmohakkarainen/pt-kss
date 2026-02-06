@@ -1,5 +1,6 @@
 package fi.publishertools.kss.phases;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
+import fi.publishertools.kss.util.XmlUtils;
 
 /**
  * Takes the chapters from the context and generates a single XHTML document.
@@ -31,7 +33,7 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
         }
 
         String title = context.getOriginalFilename() != null ? context.getOriginalFilename() : "";
-        String escapedTitle = escapeXml(title);
+        String escapedTitle = XmlUtils.escapeXml(title);
 
         StringBuilder body = new StringBuilder();
         SectionIdCounter counter = new SectionIdCounter();
@@ -41,7 +43,7 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
         String langAttr = language != null ? language : "";
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<html xmlns=\"" + XHTML_NS + "\" lang=\"" + escapeXml(langAttr) + "\" xml:lang=\"" + escapeXml(langAttr) + "\">\n"
+                + "<html xmlns=\"" + XHTML_NS + "\" lang=\"" + XmlUtils.escapeXml(langAttr) + "\" xml:lang=\"" + XmlUtils.escapeXml(langAttr) + "\">\n"
                 + "  <head>\n"
                 + "    <meta charset=\"UTF-8\"/>\n"
                 + "    <title>" + escapedTitle + "</title>\n"
@@ -51,7 +53,7 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
                 + "  </body>\n"
                 + "</html>";
 
-        context.setXhtmlContent(xhtml.getBytes("utf-8"));
+        context.setXhtmlContent(xhtml.getBytes(StandardCharsets.UTF_8));
         logger.debug("Generated XHTML with {} top-level chapter entries for file {}", chapters.size(), context.getFileId());
     }
 
@@ -70,7 +72,7 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
             String dataAttrs = buildStyleDataAttributes(node.appliedTOCStyle(), node.appliedParagraphStyle(), null);
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">\n");
             if (node.title() != null && !node.title().isEmpty()) {
-                out.append("      <h2>").append(escapeXml(node.title())).append("</h2>\n");
+                out.append("      <h2>").append(XmlUtils.escapeXml(node.title())).append("</h2>\n");
             }
             renderNodes(node.children(), out, counter);
             out.append("    </section>\n");
@@ -78,12 +80,12 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
             String sectionId = "section-" + counter.next();
             String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
-                    .append("<p>").append(escapeXml(node.text() != null ? node.text() : "")).append("</p>")
+                    .append("<p>").append(XmlUtils.escapeXml(node.text() != null ? node.text() : "")).append("</p>")
                     .append("</section>\n");
         } else if (node.isImage()) {
             String sectionId = "section-" + counter.next();
             String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
-            String src = IMAGES_PATH + escapeXml(node.imageRef() != null ? node.imageRef() : "");
+            String src = IMAGES_PATH + XmlUtils.escapeXml(node.imageRef() != null ? node.imageRef() : "");
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
                     .append("<figure><img src=\"").append(src).append("\" alt=\"\"/></figure>")
                     .append("</section>\n");
@@ -93,26 +95,15 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
     private static String buildStyleDataAttributes(String appliedTOCStyle, String appliedParagraphStyle, String appliedCharacterStyle) {
         StringBuilder sb = new StringBuilder();
         if (appliedTOCStyle != null && !appliedTOCStyle.isEmpty()) {
-            sb.append(" data-toc-style=\"").append(escapeXml(appliedTOCStyle)).append("\"");
+            sb.append(" data-toc-style=\"").append(XmlUtils.escapeXml(appliedTOCStyle)).append("\"");
         }
         if (appliedParagraphStyle != null && !appliedParagraphStyle.isEmpty()) {
-            sb.append(" data-paragraph-style=\"").append(escapeXml(appliedParagraphStyle)).append("\"");
+            sb.append(" data-paragraph-style=\"").append(XmlUtils.escapeXml(appliedParagraphStyle)).append("\"");
         }
         if (appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty()) {
-            sb.append(" data-character-style=\"").append(escapeXml(appliedCharacterStyle)).append("\"");
+            sb.append(" data-character-style=\"").append(XmlUtils.escapeXml(appliedCharacterStyle)).append("\"");
         }
         return sb.toString();
-    }
-
-    private static String escapeXml(String s) {
-        if (s == null) {
-            return "";
-        }
-        return s.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;");
     }
 
     private static class SectionIdCounter {

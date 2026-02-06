@@ -19,7 +19,7 @@ import fi.publishertools.kss.processing.ProcessingPhase;
 
 /**
  * Creates a minimal EPUB 3 {@code package.opf} XML document and stores it
- * as UTF-8 bytes into {@link ProcessingContext} metadata under key {@code "packageOpf"}.
+ * as UTF-8 bytes into {@link ProcessingContext} via {@link ProcessingContext#setPackageOpf(byte[])}.
  * <p>
  * The document:
  * <ul>
@@ -47,7 +47,7 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
         		.addMetaItem(DCCreator.create(context.getMetadata("creator", String.class)))
         		.addMetaItem(DCPublisher.create(context.getMetadata("publisher", String.class)))
         		.addMetaItem(DCLanguage.create(context.getMetadata("language", String.class)))
-        		.addMetaItem(MetaItem.createProperty("dcterms:modified", LocalDateTime.now().format(DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss'Z'"))))
+        		.addMetaItem(MetaItem.createProperty("dcterms:modified", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))))
 				.addManifestItem("toc", "toc.xhtml", "application/xhtml+xml", "nav")
         		.addSpineItem("koottu-1", "Koottu-1.xhtml", "application/xhtml+xml", null, false);
 
@@ -63,7 +63,7 @@ public class CreatePackageOpfPhase extends ProcessingPhase {
         }
 
         byte [] opfBytes = builder.build();
-        context.setPackageObf(opfBytes);
+        context.setPackageOpf(opfBytes);
 
         logger.debug("Created package.opf ({} bytes) for file {}", opfBytes.length, context.getFileId());
     }

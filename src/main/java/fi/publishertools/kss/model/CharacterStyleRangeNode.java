@@ -8,15 +8,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public record CharacterStyleRangeNode(
         @JsonProperty("text") String text,
-        String appliedCharacterStyle) implements ChapterNode {
+        @JsonProperty("appliedCharacterStyle") String appliedCharacterStyle) implements ChapterNode {
 
     @Override
     public String text() {
         return text != null ? text : "";
-    }
-
-    @Override
-    public String appliedCharacterStyle() {
-        return appliedCharacterStyle;
     }
 }

@@ -1,26 +1,19 @@
 package fi.publishertools.kss.phases;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
+import fi.publishertools.kss.util.XmlUtils;
+import fi.publishertools.kss.util.ZipUtils;
 
 /**
  * Phase 0: Extract container.xml from ZIP, read first rootfile's media-type and full-path;
@@ -45,12 +38,12 @@ public class ExtractStoriesPhase extends ProcessingPhase {
             throw new IllegalArgumentException("Input data is empty");
         }
 
-        byte[] containerXml = extractZipEntry(zipBytes, CONTAINER_PATH);
+        byte[] containerXml = ZipUtils.extractEntry(zipBytes, CONTAINER_PATH);
         if (containerXml == null) {
             throw new IllegalArgumentException("ZIP does not contain " + CONTAINER_PATH);
         }
 
-        Document doc = parseXml(containerXml);
+        Document doc = XmlUtils.parseXml(containerXml);
         Element rootfile = findFirstRootfile(doc);
         String mediaType = rootfile.getAttribute("media-type");
         String fullPath = rootfile.getAttribute("full-path");
@@ -64,12 +57,7 @@ public class ExtractStoriesPhase extends ProcessingPhase {
                     "First rootfile media-type is '" + mediaType + "', required is '" + REQUIRED_MEDIA_TYPE + "'");
         }
 
-        byte[] extracted = extractZipEntry(zipBytes, fullPath);
-        if (extracted == null) {
-            // Try normalized path (forward slashes)
-            String normalized = fullPath.replace('\\', '/');
-            extracted = extractZipEntry(zipBytes, normalized);
-        }
+        byte[] extracted = ZipUtils.extractEntry(zipBytes, fullPath);
         if (extracted == null) {
             throw new IllegalArgumentException("ZIP does not contain entry at full-path: " + fullPath);
         }
@@ -77,34 +65,12 @@ public class ExtractStoriesPhase extends ProcessingPhase {
         context.addMetadata("rootfileMediaType", mediaType);
         context.addMetadata("rootfileFullPath", fullPath);
 
-        Document fullPathDoc = parseXml(extracted);
+        Document fullPathDoc = XmlUtils.parseXml(extracted);
         List<String> storySrcList = extractStorySrcList(fullPathDoc);
         context.setStoriesList(storySrcList);
 
         logger.debug("Extracted file at {} (media-type {}), {} Story src entries for file {}",
                 fullPath, mediaType, storySrcList.size(), context.getFileId());
-    }
-
-    private static byte[] extractZipEntry(byte[] zipBytes, String entryName) throws IOException {
-        try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                String name = entry.getName().replace('\\', '/');
-                if (name.equals(entryName) || name.equals(entryName.replace('\\', '/'))) {
-                    return zis.readAllBytes();
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Document parseXml(byte[] xmlBytes) throws ParserConfigurationException, SAXException, IOException {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
-        factory.setNamespaceAware(true);
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        try (InputStream in = new ByteArrayInputStream(xmlBytes)) {
-            return builder.parse(in);
-        }
     }
 
     private static Element findFirstRootfile(Document doc) {

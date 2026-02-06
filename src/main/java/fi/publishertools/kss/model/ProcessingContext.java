@@ -69,7 +69,7 @@ public class ProcessingContext {
     	return this.packageOpf;
     }
     
-    public void setPackageObf(byte [] packageOpf) {
+    public void setPackageOpf(byte[] packageOpf) {
     	this.packageOpf = packageOpf;
     }
     

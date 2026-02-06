@@ -70,7 +70,7 @@ class AssembleEpubPhaseTest {
         context.addMetadata("creator", "Author");
         context.addMetadata("publisher", "Publisher");
         context.addMetadata("language", "fi");
-        context.setPackageObf("<package/>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        context.setPackageOpf("<package/>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         context.setXhtmlContent("<html/>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         context.setTocContent("<nav/>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 

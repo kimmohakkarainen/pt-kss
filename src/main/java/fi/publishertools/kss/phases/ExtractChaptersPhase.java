@@ -1,19 +1,7 @@
 package fi.publishertools.kss.phases;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +9,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.CharacterStyleRangeNode;
@@ -30,6 +17,8 @@ import fi.publishertools.kss.model.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoryNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
+import fi.publishertools.kss.util.XmlUtils;
+import fi.publishertools.kss.util.ZipUtils;
 
 /**
  * Extracts chapters from IDML story XML with hierarchical structure:
@@ -64,16 +53,16 @@ public class ExtractChaptersPhase extends ProcessingPhase {
 
 		for (String storyPath : storySrcList) {
 			String normalized = storyPath == null ? "" : storyPath.replace('\\', '/');
-			byte[] storyBytes = extractZipEntry(zipBytes, normalized);
+			byte[] storyBytes = ZipUtils.extractEntry(zipBytes, normalized);
 			if (storyBytes == null && storyPath != null && !storyPath.isEmpty()) {
-				storyBytes = extractZipEntry(zipBytes, storyPath);
+				storyBytes = ZipUtils.extractEntry(zipBytes, storyPath);
 			}
 			if (storyBytes == null) {
 				logger.warn("Story entry not found in ZIP for file {}: {}", context.getFileId(), storyPath);
 				continue;
 			}
 			try {
-				Document doc = parseXml(storyBytes);
+				Document doc = XmlUtils.parseXml(storyBytes);
 				List<ChapterNode> nodes = collectContentInDocumentOrder(doc);
 				contentList.addAll(nodes);
 			} catch (Exception e) {
@@ -86,33 +75,6 @@ public class ExtractChaptersPhase extends ProcessingPhase {
 		logger.debug("Extracted {} content entries for file {}", contentList.size(), context.getFileId());
 	}
 
-	private static byte[] extractZipEntry(byte[] zipBytes, String entryName) throws IOException {
-		if (entryName == null || entryName.isEmpty()) {
-			return null;
-		}
-		try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				String name = entry.getName().replace('\\', '/');
-				String normalized = entryName.replace('\\', '/');
-				if (name.equals(entryName) || name.equals(normalized)) {
-					return zis.readAllBytes();
-				}
-			}
-		}
-		return null;
-	}
-
-	private static Document parseXml(byte[] xmlBytes) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newDefaultInstance();
-		factory.setNamespaceAware(true);
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		try (InputStream in = new ByteArrayInputStream(xmlBytes)) {
-			return builder.parse(in);
-		}
-	}
-
-
 	/**
 	 * Traverses the document building a hierarchical ChapterNode tree from Story,
 	 * ParagraphStyleRange, and CharacterStyleRange elements.
@@ -123,7 +85,7 @@ public class ExtractChaptersPhase extends ProcessingPhase {
 		if (root == null) {
 			return result;
 		}
-		List<Element> stories = findElementsByLocalName(root, "Story");
+		List<Element> stories = XmlUtils.findElementsByLocalName(root, "Story");
 		for (Element story : stories) {
 			String appliedTOCStyle = getAttributeValue(story, ATTR_APPLIED_TOC_STYLE);
 			List<ChapterNode> recursed = recurseNodes(story);
@@ -149,18 +111,32 @@ public class ExtractChaptersPhase extends ProcessingPhase {
 	}
 
 	private static ChapterNode handleElement(Element element) {
-		if(element.getLocalName().equals("Content")) {
+		String localName = XmlUtils.getElementName(element);
+		if ("Content".equals(localName)) {
 			String text = element.getTextContent();
 			return new CharacterStyleRangeNode(text != null ? text : "", null);
-		} else if(element.getLocalName().equals("Link")) {
+		} else if ("Link".equals(localName)) {
 			String uri = element.getAttribute(ATTR_LINK_RESOURCE_URI);
-			String decodedUri = decodeUri(uri != null ? uri : "");
-			String fileName = extractFileNameFromUri(decodedUri);
+			String decodedUri = ZipUtils.decodeUri(uri != null ? uri : "");
+			String fileName = ZipUtils.extractFileNameFromUri(decodedUri);
 			return new ImageNode(fileName, null);
-		} else if(element.getLocalName().equals("CharacterStyleRange")) {
+		} else if ("CharacterStyleRange".equals(localName)) {
 			String appliedCharacterStyle = getAttributeValue(element, ATTR_APPLIED_CHARACTER_STYLE);
-			return new ParagraphStyleRangeNode(recurseNodes(element), appliedCharacterStyle);
-		} else if(element.getLocalName().equals("ParagraphStyleRange")) {
+			List<ChapterNode> children = recurseNodes(element);
+			if (children.isEmpty()) {
+				return null;
+			}
+			if (children.size() == 1) {
+				ChapterNode child = children.get(0);
+				if (child instanceof CharacterStyleRangeNode) {
+					return new CharacterStyleRangeNode(child.text(), appliedCharacterStyle);
+				}
+				if (child instanceof ImageNode) {
+					return new ImageNode(child.imageRef(), appliedCharacterStyle);
+				}
+			}
+			return new ParagraphStyleRangeNode(children, appliedCharacterStyle);
+		} else if ("ParagraphStyleRange".equals(localName)) {
 			String appliedParagraphStyle = getAttributeValue(element, ATTR_APPLIED_PARAGRAPH_STYLE);
 			return new ParagraphStyleRangeNode(recurseNodes(element), appliedParagraphStyle);
 		} else {
@@ -178,47 +154,5 @@ public class ExtractChaptersPhase extends ProcessingPhase {
 	private static String getAttributeValue(Element e, String name) {
 		String val = e.getAttribute(name);
 		return (val != null && !val.isEmpty()) ? val : null;
-	}
-
-	private static String decodeUri(String uri) {
-		if (uri == null || uri.isEmpty()) {
-			return uri;
-		}
-		try {
-			String decoded = URLDecoder.decode(uri, StandardCharsets.UTF_8);
-			return Normalizer.normalize(decoded, Normalizer.Form.NFC);
-		} catch (IllegalArgumentException ex) {
-			return uri;
-		}
-	}
-
-	private static String extractFileNameFromUri(String uri) {
-		if (uri == null || uri.isEmpty()) {
-			return uri;
-		}
-		int lastSlash = uri.lastIndexOf('/');
-		return lastSlash >= 0 ? uri.substring(lastSlash + 1) : uri;
-	}
-
-	private static List<Element> findElementsByLocalName(Element root, String localName) {
-		List<Element> out = new ArrayList<>();
-		collectElementsByLocalName(root, localName, out);
-		return out;
-	}
-
-	private static void collectElementsByLocalName(Element e, String localName, List<Element> out) {
-		if (e != null && localName.equals(e.getLocalName())) {
-			out.add(e);
-		}
-		if (e == null) {
-			return;
-		}
-		NodeList nl = e.getChildNodes();
-		for (int i = 0; i < nl.getLength(); i++) {
-			Node child = nl.item(i);
-			if (child instanceof Element) {
-				collectElementsByLocalName((Element) child, localName, out);
-			}
-		}
 	}
 }

@@ -51,17 +51,14 @@ public sealed interface ChapterNode
         return null;
     }
 
-    @JsonIgnore
     default String appliedTOCStyle() {
         return null;
     }
 
-    @JsonIgnore
     default String appliedParagraphStyle() {
         return null;
     }
 
-    @JsonIgnore
     default String appliedCharacterStyle() {
         return null;
     }

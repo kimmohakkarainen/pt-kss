@@ -20,20 +20,7 @@ public class FinalizationPhase extends ProcessingPhase {
         logger.debug("Finalizing output for file {}", context.getFileId());
 
         // Add finalization timestamp
-        Instant finalizedAt = Instant.now();
-        context.addMetadata("finalizedAt", finalizedAt.toString());
-
-        // Calculate total processing time if we have processing start time
-        String processedAt = context.getMetadata("processedAt", String.class);
-        if (processedAt != null) {
-            try {
-                Instant processStart = Instant.parse(processedAt);
-                long processingDurationMs = java.time.Duration.between(processStart, finalizedAt).toMillis();
-                context.addMetadata("processingDurationMs", processingDurationMs);
-            } catch (Exception e) {
-                logger.warn("Could not calculate processing duration for file {}", context.getFileId(), e);
-            }
-        }
+        context.addMetadata("finalizedAt", Instant.now().toString());
 
         // Mark as finalized
         context.addMetadata("status", "finalized");
