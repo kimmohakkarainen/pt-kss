@@ -187,7 +187,6 @@ public class ProcessingPipeline {
         payload.put("contentType", context.getContentType());
         payload.put("fileSize", context.getFileSize());
         payload.put("uploadTime", context.getUploadTime().toString());
-        payload.put("storiesList", context.getStoriesList());
         payload.put("chapters", context.getChapters());
         payload.put("imageList", context.getImageList());
         payload.put("xhtml", context.getXhtmlContent());

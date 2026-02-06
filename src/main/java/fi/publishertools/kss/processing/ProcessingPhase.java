@@ -1,5 +1,7 @@
 package fi.publishertools.kss.processing;
 
+import java.io.IOException;
+
 import fi.publishertools.kss.model.ProcessingContext;
 
 /**
@@ -14,7 +16,7 @@ public abstract class ProcessingPhase {
      * @param context the processing context containing file data and metadata
      * @throws Exception if processing fails
      */
-    public abstract void process(ProcessingContext context) throws Exception;
+    public abstract void process(ProcessingContext context) throws Exception, IOException;
 
     /**
      * Get the phase name for logging and identification.

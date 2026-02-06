@@ -18,7 +18,7 @@ import fi.publishertools.kss.util.ZipUtils;
 /**
  * Phase 0: Extract container.xml from ZIP, read first rootfile's media-type and full-path;
  * if media-type is "text/xml", extract the file at full-path, parse it, collect Story src
- * attributes, and pass the list to the next phase.
+ * attributes, extract and parse each story XML file, and pass the list of Documents to the next phase.
  */
 public class A1_ExtractStories extends ProcessingPhase {
 
@@ -30,7 +30,7 @@ public class A1_ExtractStories extends ProcessingPhase {
     private static final String IDML_PACKAGING_NS = "http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging";
 
     @Override
-    public void process(ProcessingContext context) throws Exception {
+    public void process(ProcessingContext context) throws Exception, IOException {
         logger.debug("Extracting stories for file {}", context.getFileId());
 
         byte[] zipBytes = context.getOriginalFileContents();
@@ -66,11 +66,13 @@ public class A1_ExtractStories extends ProcessingPhase {
         context.addMetadata("rootfileFullPath", fullPath);
 
         Document fullPathDoc = XmlUtils.parseXml(extracted);
-        List<String> storySrcList = extractStorySrcList(fullPathDoc);
-        context.setStoriesList(storySrcList);
+        List<String> storyPaths = extractStorySrcList(fullPathDoc);
 
-        logger.debug("Extracted file at {} (media-type {}), {} Story src entries for file {}",
-                fullPath, mediaType, storySrcList.size(), context.getFileId());
+        List<Document> storyDocs = extractAndParseStoryDocuments(zipBytes, storyPaths, context.getFileId());
+        context.setStoriesList(storyDocs);
+
+        logger.debug("Extracted file at {} (media-type {}), {} Story documents for file {}",
+                fullPath, mediaType, storyDocs.size(), context.getFileId());
     }
 
     private static Element findFirstRootfile(Document doc) {
@@ -90,5 +92,28 @@ public class A1_ExtractStories extends ProcessingPhase {
             srcList.add(src != null ? src : "");
         }
         return srcList;
+    }
+
+    private static List<Document> extractAndParseStoryDocuments(byte[] zipBytes, List<String> storyPaths, String fileId) throws IOException {
+        List<Document> result = new ArrayList<>(storyPaths.size());
+        for (String storyPath : storyPaths) {
+            String normalized = storyPath == null ? "" : storyPath.replace('\\', '/');
+            byte[] storyBytes = ZipUtils.extractEntry(zipBytes, normalized);
+            if (storyBytes == null && storyPath != null && !storyPath.isEmpty()) {
+                storyBytes = ZipUtils.extractEntry(zipBytes, storyPath);
+            }
+            if (storyBytes == null) {
+                logger.warn("Story entry not found in ZIP for file {}: {}", fileId, storyPath);
+                continue;
+            }
+            try {
+                Document doc = XmlUtils.parseXml(storyBytes);
+                result.add(doc);
+            } catch (Exception e) {
+                logger.warn("Failed to parse story XML for file {} entry {}: {}",
+                        fileId, storyPath, e.getMessage());
+            }
+        }
+        return result;
     }
 }

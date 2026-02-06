@@ -20,8 +20,8 @@ import fi.publishertools.kss.util.XmlUtils;
 import fi.publishertools.kss.util.ZipUtils;
 
 /**
- * Phase that runs after ExtractChaptersPhase. Iterates over all XML story files listed in
- * processing context storiesList, parses each, finds Link elements, and extracts
+ * Phase that runs after ExtractChaptersPhase. Iterates over all story Documents in
+ * processing context storiesList, finds Link elements in each, and extracts
  * LinkResourceURI and LinkResourceFormat attributes into imageList.
  */
 public class A3_ExtractImageInfo extends ProcessingPhase {
@@ -36,39 +36,25 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         logger.debug("Extracting images for file {}", context.getFileId());
 
         byte[] zipBytes = context.getOriginalFileContents();
-        List<String> storySrcList = context.getStoriesList();
+        List<Document> storyDocs = context.getStoriesList();
 
         List<ImageInfo> imageList = new ArrayList<>();
-        if (zipBytes == null || zipBytes.length == 0 || storySrcList == null || storySrcList.isEmpty()) {
+        if (storyDocs == null || storyDocs.isEmpty()) {
             context.setImageList(imageList);
-            logger.debug("No ZIP or story list for file {}, image list empty", context.getFileId());
+            logger.debug("No story documents for file {}, image list empty", context.getFileId());
             return;
         }
 
-        for (String storyPath : storySrcList) {
-            String normalized = storyPath == null ? "" : storyPath.replace('\\', '/');
-            byte[] storyBytes = ZipUtils.extractEntry(zipBytes, normalized);
-            if (storyBytes == null && storyPath != null && !storyPath.isEmpty()) {
-                storyBytes = ZipUtils.extractEntry(zipBytes, storyPath);
-            }
-            if (storyBytes == null) {
-                logger.warn("Story entry not found in ZIP for file {}: {}", context.getFileId(), storyPath);
-                continue;
-            }
-            try {
-                Document doc = XmlUtils.parseXml(storyBytes);
-                List<ImageInfo> images = collectImagesFromStoryDocument(doc);
-                imageList.addAll(images);
-            } catch (Exception e) {
-                logger.warn("Failed to parse story XML for file {} entry {}: {}",
-                        context.getFileId(), storyPath, e.getMessage());
-            }
+        for (Document doc : storyDocs) {
+            List<ImageInfo> images = collectImagesFromStoryDocument(doc);
+            imageList.addAll(images);
         }
 
         context.setImageList(imageList);
 
         // Populate imageContent from ZIP for each unique resource URI; key by filename
         Set<String> processedUris = new LinkedHashSet<>();
+        if (zipBytes != null && zipBytes.length > 0) {
         for (ImageInfo info : imageList) {
             String uri = info.resourceUri();
             String fileName = info.fileName();
@@ -80,6 +66,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
                     context.addImageContent(fileName, bytes);
                 }
             }
+        }
         }
 
         logger.debug("Extracted {} image entries for file {} ({} with content from ZIP)", imageList.size(), context.getFileId(), context.getImageContent().size());

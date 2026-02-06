@@ -41,34 +41,18 @@ public class A2_ExtractChapters extends ProcessingPhase {
 	public void process(ProcessingContext context) throws Exception {
 		logger.debug("Extracting chapters for file {}", context.getFileId());
 
-		byte[] zipBytes = context.getOriginalFileContents();
-		List<String> storySrcList = context.getStoriesList();
+		List<Document> storyDocs = context.getStoriesList();
 
 		List<ChapterNode> contentList = new ArrayList<>();
-		if (zipBytes == null || zipBytes.length == 0 || storySrcList == null || storySrcList.isEmpty()) {
+		if (storyDocs == null || storyDocs.isEmpty()) {
 			context.setChapters(contentList);
-			logger.debug("No ZIP or story list for file {}, content list empty", context.getFileId());
+			logger.debug("No story documents for file {}, content list empty", context.getFileId());
 			return;
 		}
 
-		for (String storyPath : storySrcList) {
-			String normalized = storyPath == null ? "" : storyPath.replace('\\', '/');
-			byte[] storyBytes = ZipUtils.extractEntry(zipBytes, normalized);
-			if (storyBytes == null && storyPath != null && !storyPath.isEmpty()) {
-				storyBytes = ZipUtils.extractEntry(zipBytes, storyPath);
-			}
-			if (storyBytes == null) {
-				logger.warn("Story entry not found in ZIP for file {}: {}", context.getFileId(), storyPath);
-				continue;
-			}
-			try {
-				Document doc = XmlUtils.parseXml(storyBytes);
-				List<ChapterNode> nodes = collectContentInDocumentOrder(doc);
-				contentList.addAll(nodes);
-			} catch (Exception e) {
-				logger.warn("Failed to parse story XML for file {} entry {}: {}",
-						context.getFileId(), storyPath, e.getMessage());
-			}
+		for (Document doc : storyDocs) {
+			List<ChapterNode> nodes = collectContentInDocumentOrder(doc);
+			contentList.addAll(nodes);
 		}
 
 		context.setChapters(contentList);

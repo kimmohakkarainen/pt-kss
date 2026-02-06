@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Document;
+
 import fi.publishertools.kss.model.content.ChapterNode;
 
 /**
@@ -19,7 +21,7 @@ public class ProcessingContext {
     private final Instant uploadTime;
     private final byte[] originalFileContents;
     private byte[] packageOpf;
-    private List<String> storiesList;
+    private List<Document> storiesList;
     private List<ChapterNode> chapters;
     private List<ImageInfo> imageList;
     private final Map<String, byte[]> imageContent;
@@ -75,11 +77,11 @@ public class ProcessingContext {
     	this.packageOpf = packageOpf;
     }
     
-    public List<String> getStoriesList() {
+    public List<Document> getStoriesList() {
         return storiesList;
     }
 
-    public void setStoriesList(List<String> storiesList) {
+    public void setStoriesList(List<Document> storiesList) {
         this.storiesList = storiesList;
     }
 

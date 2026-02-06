@@ -9,6 +9,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
 
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.content.ChapterNode;
@@ -16,6 +17,7 @@ import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.A2_ExtractChapters;
+import fi.publishertools.kss.util.XmlUtils;
 
 class ExtractChaptersPhaseTest {
 
@@ -41,7 +43,8 @@ class ExtractChaptersPhaseTest {
             """;
 
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
-        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+        Document doc = XmlUtils.parseXml(storyXml.getBytes(StandardCharsets.UTF_8));
+        ProcessingContext context = createContext(zipBytes, List.of(doc));
 
         A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
@@ -106,7 +109,8 @@ class ExtractChaptersPhaseTest {
             """;
 
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
-        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+        Document doc = XmlUtils.parseXml(storyXml.getBytes(StandardCharsets.UTF_8));
+        ProcessingContext context = createContext(zipBytes, List.of(doc));
 
         A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
@@ -146,7 +150,8 @@ class ExtractChaptersPhaseTest {
             """;
 
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
-        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+        Document doc = XmlUtils.parseXml(storyXml.getBytes(StandardCharsets.UTF_8));
+        ProcessingContext context = createContext(zipBytes, List.of(doc));
 
         A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
@@ -184,7 +189,8 @@ class ExtractChaptersPhaseTest {
             """;
 
         byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
-        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+        Document doc = XmlUtils.parseXml(storyXml.getBytes(StandardCharsets.UTF_8));
+        ProcessingContext context = createContext(zipBytes, List.of(doc));
 
         A2_ExtractChapters phase = new A2_ExtractChapters();
         phase.process(context);
@@ -209,7 +215,7 @@ class ExtractChaptersPhaseTest {
         return baos.toByteArray();
     }
 
-    private static ProcessingContext createContext(byte[] zipBytes, List<String> storiesList) {
+    private static ProcessingContext createContext(byte[] zipBytes, List<Document> storyDocs) {
         StoredFile storedFile = new StoredFile(
                 "test-id",
                 "test.idml",
@@ -219,7 +225,7 @@ class ExtractChaptersPhaseTest {
                 zipBytes
         );
         ProcessingContext context = new ProcessingContext(storedFile);
-        context.setStoriesList(storiesList);
+        context.setStoriesList(storyDocs);
         return context;
     }
 }
