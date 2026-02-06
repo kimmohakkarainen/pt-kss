@@ -67,7 +67,8 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
     private static void renderNode(ChapterNode node, StringBuilder out, SectionIdCounter counter) {
         if (node.isContainer()) {
             String sectionId = "section-" + counter.next();
-            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">\n");
+            String dataAttrs = buildStyleDataAttributes(node.appliedTOCStyle(), node.appliedParagraphStyle(), null);
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">\n");
             if (node.title() != null && !node.title().isEmpty()) {
                 out.append("      <h2>").append(escapeXml(node.title())).append("</h2>\n");
             }
@@ -75,16 +76,32 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
             out.append("    </section>\n");
         } else if (node.isText()) {
             String sectionId = "section-" + counter.next();
-            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">")
+            String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
                     .append("<p>").append(escapeXml(node.text() != null ? node.text() : "")).append("</p>")
                     .append("</section>\n");
         } else if (node.isImage()) {
             String sectionId = "section-" + counter.next();
+            String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
             String src = IMAGES_PATH + escapeXml(node.imageRef() != null ? node.imageRef() : "");
-            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">")
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
                     .append("<figure><img src=\"").append(src).append("\" alt=\"\"/></figure>")
                     .append("</section>\n");
         }
+    }
+
+    private static String buildStyleDataAttributes(String appliedTOCStyle, String appliedParagraphStyle, String appliedCharacterStyle) {
+        StringBuilder sb = new StringBuilder();
+        if (appliedTOCStyle != null && !appliedTOCStyle.isEmpty()) {
+            sb.append(" data-toc-style=\"").append(escapeXml(appliedTOCStyle)).append("\"");
+        }
+        if (appliedParagraphStyle != null && !appliedParagraphStyle.isEmpty()) {
+            sb.append(" data-paragraph-style=\"").append(escapeXml(appliedParagraphStyle)).append("\"");
+        }
+        if (appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty()) {
+            sb.append(" data-character-style=\"").append(escapeXml(appliedCharacterStyle)).append("\"");
+        }
+        return sb.toString();
     }
 
     private static String escapeXml(String s) {

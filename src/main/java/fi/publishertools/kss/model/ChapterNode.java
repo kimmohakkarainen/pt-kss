@@ -3,75 +3,115 @@ package fi.publishertools.kss.model;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
- * Recursive node representing book content: chapters, sub-chapters, paragraphs, and image references.
+ * Recursive node representing book content from IDML: stories, paragraph style ranges,
+ * character style ranges (text), image references, and generic sections.
  * <p>
- * A node is either:
+ * Five variants:
  * <ul>
- *   <li><b>Container</b> (chapter/sub-chapter): has {@code children}; {@code text} and {@code imageRef} are null</li>
- *   <li><b>Text leaf</b> (paragraph): has {@code text}; {@code children} null/empty, {@code imageRef} null</li>
- *   <li><b>Image leaf</b>: has {@code imageRef}; {@code children} null/empty, {@code text} null</li>
+ *   <li><b>StoryNode</b> – IDML Story container with AppliedTOCStyle</li>
+ *   <li><b>ParagraphStyleRangeNode</b> – IDML ParagraphStyleRange container with AppliedParagraphStyle</li>
+ *   <li><b>CharacterStyleRangeNode</b> – IDML CharacterStyleRange text leaf with AppliedCharacterStyle</li>
+ *   <li><b>ImageNode</b> – Image reference (from Link) with AppliedCharacterStyle</li>
+ *   <li><b>SectionNode</b> – Generic section with optional title (for manual construction)</li>
  * </ul>
- *
- * @param title    Optional title for TOC; typically used for container nodes
- * @param text     Paragraph text content; null for container or image nodes
- * @param imageRef Image filename (matches {@link ImageInfo#fileName()} / imageContent keys); null for text or container
- * @param children Sub-chapters or paragraphs; null or empty for leaf nodes
  */
-public record ChapterNode(
-        String title,
-        String text,
-        String imageRef,
-        List<ChapterNode> children) {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = StoryNode.class, name = "story"),
+    @JsonSubTypes.Type(value = ParagraphStyleRangeNode.class, name = "paragraphStyleRange"),
+    @JsonSubTypes.Type(value = CharacterStyleRangeNode.class, name = "characterStyleRange"),
+    @JsonSubTypes.Type(value = ImageNode.class, name = "image"),
+    @JsonSubTypes.Type(value = SectionNode.class, name = "section")
+})
+public sealed interface ChapterNode
+        permits StoryNode, ParagraphStyleRangeNode, CharacterStyleRangeNode, ImageNode, SectionNode {
 
-    /**
-     * Creates a text paragraph node.
-     */
-    public static ChapterNode text(String text) {
-        return new ChapterNode(null, text != null ? text : "", null, null);
+    @JsonIgnore
+    default String title() {
+        return null;
     }
 
-    /**
-     * Creates an image reference node.
-     *
-     * @param imageRef Filename matching imageContent keys
-     */
-    public static ChapterNode image(String imageRef) {
-        return new ChapterNode(null, null, imageRef != null ? imageRef : "", null);
+    @JsonIgnore
+    default List<ChapterNode> children() {
+        return Collections.emptyList();
     }
 
-    /**
-     * Creates a section (chapter/sub-chapter) with children.
-     *
-     * @param title    Optional title for TOC
-     * @param children Child nodes; must not be null
-     */
-    public static ChapterNode section(String title, List<ChapterNode> children) {
-        return new ChapterNode(
-                title,
-                null,
-                null,
-                children != null ? List.copyOf(children) : Collections.emptyList());
+    @JsonIgnore
+    default String text() {
+        return null;
     }
 
-    /**
-     * Returns true if this node is a container (has children).
-     */
-    public boolean isContainer() {
-        return children != null && !children.isEmpty();
+    @JsonIgnore
+    default String imageRef() {
+        return null;
     }
 
-    /**
-     * Returns true if this node is a text paragraph.
-     */
-    public boolean isText() {
-        return text != null;
+    @JsonIgnore
+    default String appliedTOCStyle() {
+        return null;
     }
 
-    /**
-     * Returns true if this node is an image reference.
-     */
-    public boolean isImage() {
-        return imageRef != null;
+    @JsonIgnore
+    default String appliedParagraphStyle() {
+        return null;
+    }
+
+    @JsonIgnore
+    default String appliedCharacterStyle() {
+        return null;
+    }
+
+    @JsonIgnore
+    default boolean isContainer() {
+        return this instanceof StoryNode || this instanceof ParagraphStyleRangeNode || this instanceof SectionNode;
+    }
+
+    @JsonIgnore
+    default boolean isText() {
+        return text() != null;
+    }
+
+    @JsonIgnore
+    default boolean isImage() {
+        return imageRef() != null;
+    }
+
+    // Factory methods for backward compatibility and manual construction
+
+    static ChapterNode text(String text) {
+        return new CharacterStyleRangeNode(text != null ? text : "", null);
+    }
+
+    static ChapterNode text(String text, String appliedCharacterStyle) {
+        return new CharacterStyleRangeNode(text != null ? text : "",
+                appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty() ? appliedCharacterStyle : null);
+    }
+
+    static ChapterNode image(String imageRef) {
+        return new ImageNode(imageRef != null ? imageRef : "", null);
+    }
+
+    static ChapterNode image(String imageRef, String appliedCharacterStyle) {
+        return new ImageNode(imageRef != null ? imageRef : "",
+                appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty() ? appliedCharacterStyle : null);
+    }
+
+    static ChapterNode section(String title, List<ChapterNode> children) {
+        return new SectionNode(title, children != null ? List.copyOf(children) : Collections.emptyList());
+    }
+
+    static ChapterNode sectionWithTOCStyle(String title, List<ChapterNode> children, String appliedTOCStyle) {
+        return new StoryNode(children != null ? List.copyOf(children) : Collections.emptyList(),
+                appliedTOCStyle != null && !appliedTOCStyle.isEmpty() ? appliedTOCStyle : null);
+    }
+
+    static ChapterNode sectionWithParagraphStyle(String title, List<ChapterNode> children, String appliedParagraphStyle) {
+        return new ParagraphStyleRangeNode(children != null ? List.copyOf(children) : Collections.emptyList(),
+                appliedParagraphStyle != null && !appliedParagraphStyle.isEmpty() ? appliedParagraphStyle : null);
     }
 }

@@ -86,6 +86,28 @@ class GenerateXHTMLPhaseTest {
         assertThat(xhtml).contains("</body>");
     }
 
+    @Test
+    @DisplayName("GenerateXHTMLPhase outputs data attributes for style info when present")
+    void outputsStyleDataAttributes() throws Exception {
+        ProcessingContext context = createContext();
+        context.setChapters(List.of(
+                ChapterNode.sectionWithTOCStyle("Chapter", List.of(
+                        ChapterNode.sectionWithParagraphStyle(null, List.of(
+                                ChapterNode.text("Content", "CharacterStyle/Bold")
+                        ), "ParagraphStyle/Heading1")
+                ), "TOCStyle/Chapter")
+        ));
+        context.addMetadata("language", "en");
+
+        GenerateXHTMLPhase phase = new GenerateXHTMLPhase();
+        phase.process(context);
+
+        String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
+        assertThat(xhtml).contains("data-toc-style=\"TOCStyle/Chapter\"");
+        assertThat(xhtml).contains("data-paragraph-style=\"ParagraphStyle/Heading1\"");
+        assertThat(xhtml).contains("data-character-style=\"CharacterStyle/Bold\"");
+    }
+
     private static ProcessingContext createContext() {
         StoredFile storedFile = new StoredFile(
                 "test-id",

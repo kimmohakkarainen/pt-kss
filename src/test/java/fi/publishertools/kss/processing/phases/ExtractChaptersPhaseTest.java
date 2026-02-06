@@ -11,14 +11,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import fi.publishertools.kss.model.ChapterNode;
+import fi.publishertools.kss.model.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.StoryNode;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.ExtractChaptersPhase;
 
 class ExtractChaptersPhaseTest {
 
     @Test
-    @DisplayName("ExtractChaptersPhase produces ChapterNode list from story XML with text")
+    @DisplayName("ExtractChaptersPhase produces hierarchical ChapterNode from story XML with text")
     void extractsTextAsChapterNodes() throws Exception {
         String storyXml = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -45,11 +47,24 @@ class ExtractChaptersPhaseTest {
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();
-        assertThat(chapters).hasSize(2);
-        assertThat(chapters.get(0).isText()).isTrue();
-        assertThat(chapters.get(0).text()).isEqualTo("Hello world");
-        assertThat(chapters.get(1).isText()).isTrue();
-        assertThat(chapters.get(1).text()).isEqualTo("Second paragraph");
+        assertThat(chapters).hasSize(1);
+        ChapterNode storyNode = chapters.get(0);
+        assertThat(storyNode).isInstanceOf(StoryNode.class);
+        assertThat(storyNode.isContainer()).isTrue();
+        assertThat(storyNode.children()).hasSize(2);
+
+        ChapterNode psr1 = storyNode.children().get(0);
+        assertThat(psr1).isInstanceOf(ParagraphStyleRangeNode.class);
+        assertThat(psr1.isContainer()).isTrue();
+        assertThat(psr1.children()).hasSize(1);
+        assertThat(psr1.children().get(0).isText()).isTrue();
+        assertThat(psr1.children().get(0).text()).isEqualTo("Hello world");
+
+        ChapterNode psr2 = storyNode.children().get(1);
+        assertThat(psr2.isContainer()).isTrue();
+        assertThat(psr2.children()).hasSize(1);
+        assertThat(psr2.children().get(0).isText()).isTrue();
+        assertThat(psr2.children().get(0).text()).isEqualTo("Second paragraph");
     }
 
     @Test
@@ -97,13 +112,90 @@ class ExtractChaptersPhaseTest {
         phase.process(context);
 
         List<ChapterNode> chapters = context.getChapters();
-        assertThat(chapters).hasSize(3);
-        assertThat(chapters.get(0).isText()).isTrue();
-        assertThat(chapters.get(0).text()).isEqualTo("Before image");
-        assertThat(chapters.get(1).isImage()).isTrue();
-        assertThat(chapters.get(1).imageRef()).isEqualTo("photo.jpg");
-        assertThat(chapters.get(2).isText()).isTrue();
-        assertThat(chapters.get(2).text()).isEqualTo("After image");
+        assertThat(chapters).hasSize(1);
+        ChapterNode storyNode = chapters.get(0);
+        assertThat(storyNode.children()).hasSize(3);
+
+        ChapterNode psr1 = storyNode.children().get(0);
+        assertThat(psr1.children().get(0).isText()).isTrue();
+        assertThat(psr1.children().get(0).text()).isEqualTo("Before image");
+
+        ChapterNode psr2 = storyNode.children().get(1);
+        assertThat(psr2.children().get(0).isImage()).isTrue();
+        assertThat(psr2.children().get(0).imageRef()).isEqualTo("photo.jpg");
+
+        ChapterNode psr3 = storyNode.children().get(2);
+        assertThat(psr3.children().get(0).isText()).isTrue();
+        assertThat(psr3.children().get(0).text()).isEqualTo("After image");
+    }
+
+    @Test
+    @DisplayName("ExtractChaptersPhase stores style attributes on nodes")
+    void storesStyleAttributes() throws Exception {
+        String storyXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Root>
+              <Story AppliedTOCStyle="TOCStyle/Chapter">
+                <ParagraphStyleRange AppliedParagraphStyle="ParagraphStyle/Heading1">
+                  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Bold">
+                    <Content>Styled text</Content>
+                  </CharacterStyleRange>
+                </ParagraphStyleRange>
+              </Story>
+            </Root>
+            """;
+
+        byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
+        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+
+        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        phase.process(context);
+
+        List<ChapterNode> chapters = context.getChapters();
+        assertThat(chapters).hasSize(1);
+        ChapterNode storyNode = chapters.get(0);
+        assertThat(storyNode.appliedTOCStyle()).isEqualTo("TOCStyle/Chapter");
+
+        ChapterNode psr = storyNode.children().get(0);
+        assertThat(psr.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Heading1");
+
+        ChapterNode textNode = psr.children().get(0);
+        assertThat(textNode.appliedCharacterStyle()).isEqualTo("CharacterStyle/Bold");
+        assertThat(textNode.text()).isEqualTo("Styled text");
+    }
+
+    @Test
+    @DisplayName("ExtractChaptersPhase handles multiple CharacterStyleRanges as siblings under ParagraphStyleRange")
+    void multipleCharacterStyleRangesAsSiblings() throws Exception {
+        String storyXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Root>
+              <Story>
+                <ParagraphStyleRange>
+                  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/Italic">
+                    <Content>Italic part</Content>
+                  </CharacterStyleRange>
+                  <CharacterStyleRange AppliedCharacterStyle="CharacterStyle/$ID/[No character style]">
+                    <Content> and normal part</Content>
+                  </CharacterStyleRange>
+                </ParagraphStyleRange>
+              </Story>
+            </Root>
+            """;
+
+        byte[] zipBytes = createZipWithStory("Stories/Story_u123.xml", storyXml);
+        ProcessingContext context = createContext(zipBytes, List.of("Stories/Story_u123.xml"));
+
+        ExtractChaptersPhase phase = new ExtractChaptersPhase();
+        phase.process(context);
+
+        List<ChapterNode> chapters = context.getChapters();
+        ChapterNode psr = chapters.get(0).children().get(0);
+        assertThat(psr.children()).hasSize(2);
+        assertThat(psr.children().get(0).text()).isEqualTo("Italic part");
+        assertThat(psr.children().get(0).appliedCharacterStyle()).isEqualTo("CharacterStyle/Italic");
+        assertThat(psr.children().get(1).text()).isEqualTo(" and normal part");
+        assertThat(psr.children().get(1).appliedCharacterStyle()).isEqualTo("CharacterStyle/$ID/[No character style]");
     }
 
     private static byte[] createZipWithStory(String entryName, String content) throws Exception {
