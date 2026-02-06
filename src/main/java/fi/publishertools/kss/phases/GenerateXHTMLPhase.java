@@ -6,25 +6,26 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
 /**
  * Takes the chapters from the context and generates a single XHTML document.
- * The document has a head with title set to the original filename, and a body
- * where each chapter string is wrapped in {@code <section class="chapter">}.
+ * Renders ChapterNode hierarchy: text as paragraphs, images as figures, sections with optional titles.
  */
 public class GenerateXHTMLPhase extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(GenerateXHTMLPhase.class);
 
     private static final String XHTML_NS = "http://www.w3.org/1999/xhtml";
+    private static final String IMAGES_PATH = "images/";
 
     @Override
     public void process(ProcessingContext context) throws Exception {
         logger.debug("Generating XHTML for file {}", context.getFileId());
 
-        List<String> chapters = context.getChapters();
+        List<ChapterNode> chapters = context.getChapters();
         if (chapters == null) {
             chapters = Collections.emptyList();
         }
@@ -33,18 +34,14 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
         String escapedTitle = escapeXml(title);
 
         StringBuilder body = new StringBuilder();
-        int sectionIndex = 1;
-        for (String chapter : chapters) {
-            String escaped = escapeXml(chapter != null ? chapter : "");
-            body.append("    <section class=\"chapter\" id=\"section-").append(sectionIndex).append("\">")
-                    .append(escaped).append("</section>\n");
-            sectionIndex++;
-        }
-        
+        SectionIdCounter counter = new SectionIdCounter();
+        renderNodes(chapters, body, counter);
+
         String language = context.getMetadata("language", String.class);
+        String langAttr = language != null ? language : "";
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<html xmlns=\"" + XHTML_NS + "\" lang=\"" + language + "\" xml:lang=\"" + language + "\">\n"
+                + "<html xmlns=\"" + XHTML_NS + "\" lang=\"" + escapeXml(langAttr) + "\" xml:lang=\"" + escapeXml(langAttr) + "\">\n"
                 + "  <head>\n"
                 + "    <meta charset=\"UTF-8\"/>\n"
                 + "    <title>" + escapedTitle + "</title>\n"
@@ -55,7 +52,39 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
                 + "</html>";
 
         context.setXhtmlContent(xhtml.getBytes("utf-8"));
-        logger.debug("Generated XHTML with {} chapters for file {}", chapters.size(), context.getFileId());
+        logger.debug("Generated XHTML with {} top-level chapter entries for file {}", chapters.size(), context.getFileId());
+    }
+
+    private static void renderNodes(List<ChapterNode> nodes, StringBuilder out, SectionIdCounter counter) {
+        if (nodes == null) {
+            return;
+        }
+        for (ChapterNode node : nodes) {
+            renderNode(node, out, counter);
+        }
+    }
+
+    private static void renderNode(ChapterNode node, StringBuilder out, SectionIdCounter counter) {
+        if (node.isContainer()) {
+            String sectionId = "section-" + counter.next();
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">\n");
+            if (node.title() != null && !node.title().isEmpty()) {
+                out.append("      <h2>").append(escapeXml(node.title())).append("</h2>\n");
+            }
+            renderNodes(node.children(), out, counter);
+            out.append("    </section>\n");
+        } else if (node.isText()) {
+            String sectionId = "section-" + counter.next();
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">")
+                    .append("<p>").append(escapeXml(node.text() != null ? node.text() : "")).append("</p>")
+                    .append("</section>\n");
+        } else if (node.isImage()) {
+            String sectionId = "section-" + counter.next();
+            String src = IMAGES_PATH + escapeXml(node.imageRef() != null ? node.imageRef() : "");
+            out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\">")
+                    .append("<figure><img src=\"").append(src).append("\" alt=\"\"/></figure>")
+                    .append("</section>\n");
+        }
     }
 
     private static String escapeXml(String s) {
@@ -67,5 +96,13 @@ public class GenerateXHTMLPhase extends ProcessingPhase {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+    }
+
+    private static class SectionIdCounter {
+        private int next = 1;
+
+        int next() {
+            return next++;
+        }
     }
 }

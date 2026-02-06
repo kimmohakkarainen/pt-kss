@@ -18,7 +18,7 @@ public class ProcessingContext {
     private final byte[] originalFileContents;
     private byte[] packageOpf;
     private List<String> storiesList;
-    private List<String> chapters;
+    private List<ChapterNode> chapters;
     private List<ImageInfo> imageList;
     private final Map<String, byte[]> imageContent;
     private byte[] xhtmlContent;
@@ -81,11 +81,11 @@ public class ProcessingContext {
         this.storiesList = storiesList;
     }
 
-    public List<String> getChapters() {
+    public List<ChapterNode> getChapters() {
         return chapters;
     }
 
-    public void setChapters(List<String> chapters) {
+    public void setChapters(List<ChapterNode> chapters) {
         this.chapters = chapters;
     }
 

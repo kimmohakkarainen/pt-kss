@@ -119,11 +119,24 @@ When status is `awaiting-metadata`, the user must fill mandatory EPUB metadata (
     "originalFilename": "archive.zip",
     "epubFile": "<base64-encoded-bytes>",
     "storiesList": [],
-    "chapters": []
+    "chapters": [
+      { "title": null, "text": "Paragraph text.", "imageRef": null, "children": null },
+      { "title": null, "text": null, "imageRef": "photo.jpg", "children": null }
+    ],
+    "imageList": [],
+    "xhtml": "<base64-encoded-bytes>"
   },
   "errorMessage": null
 }
 ```
+
+The `chapters` array contains `ChapterNode` objects in document order. Each node has:
+- `title`: Optional section title (for TOC); null for leaf nodes
+- `text`: Paragraph text; null for container or image nodes
+- `imageRef`: Image filename (matches imageContent keys); null for text or container nodes
+- `children`: Nested sub-chapters/paragraphs; null or empty for leaf nodes
+
+Nodes can be text paragraphs, image references, or containers (chapters/sub-chapters) with nested children.
 
 **Error response** (500 Internal Server Error):
 

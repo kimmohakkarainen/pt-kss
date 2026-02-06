@@ -6,13 +6,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fi.publishertools.kss.model.ChapterNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
 /**
  * Generates XHTML table-of-contents content for the EPUB.
  * Uses chapters from the context to build a nav element with epub:type="toc"
- * and links to each chapter section in the main content.
+ * and links to each section in the main content. Supports nested structure.
  */
 public class GenerateTOCPhase extends ProcessingPhase {
 
@@ -26,24 +27,20 @@ public class GenerateTOCPhase extends ProcessingPhase {
     public void process(ProcessingContext context) throws Exception {
         logger.debug("Generating TOC for file {}", context.getFileId());
 
-        List<String> chapters = context.getChapters();
+        List<ChapterNode> chapters = context.getChapters();
         if (chapters == null) {
             chapters = Collections.emptyList();
         }
 
         StringBuilder ol = new StringBuilder();
-        for (int i = 0; i < chapters.size(); i++) {
-            int sectionNum = i + 1;
-            String label = "Chapter " + sectionNum;
-            String href = CONTENT_FILE + "#section-" + sectionNum;
-            ol.append("        <li><a href=\"").append(escapeXml(href)).append("\">")
-                    .append(escapeXml(label)).append("</a></li>\n");
-        }
+        TocBuilder builder = new TocBuilder();
+        buildToc(chapters, ol, builder);
 
         String language = context.getMetadata("language", String.class);
+        String langAttr = language != null ? language : "";
 
         String xhtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<html xmlns=\"" + XHTML_NS + "\" xmlns:epub=\"" + EPUB_NS + "\" lang=\"" + language + "\" xml:lang=\"" + language + "\">\n"
+                + "<html xmlns=\"" + XHTML_NS + "\" xmlns:epub=\"" + EPUB_NS + "\" lang=\"" + escapeXml(langAttr) + "\" xml:lang=\"" + escapeXml(langAttr) + "\">\n"
                 + "  <head>\n"
                 + "    <meta charset=\"UTF-8\"/>\n"
                 + "    <title>Table of Contents</title>\n"
@@ -59,7 +56,31 @@ public class GenerateTOCPhase extends ProcessingPhase {
                 + "</html>";
 
         context.setTocContent(xhtml.getBytes("utf-8"));
-        logger.debug("Generated TOC with {} entries for file {}", chapters.size(), context.getFileId());
+        logger.debug("Generated TOC with {} entries for file {}", builder.count(), context.getFileId());
+    }
+
+    private static void buildToc(List<ChapterNode> nodes, StringBuilder out, TocBuilder builder) {
+        if (nodes == null) {
+            return;
+        }
+        for (ChapterNode node : nodes) {
+            int sectionNum = builder.next();
+            String label = (node.title() != null && !node.title().isEmpty())
+                    ? node.title()
+                    : "Chapter " + sectionNum;
+            String href = CONTENT_FILE + "#section-" + sectionNum;
+            if (node.isContainer()) {
+                out.append("        <li><a href=\"").append(escapeXml(href)).append("\">")
+                        .append(escapeXml(label)).append("</a>\n");
+                out.append("          <ol>\n");
+                buildToc(node.children(), out, builder);
+                out.append("          </ol>\n");
+                out.append("        </li>\n");
+            } else {
+                out.append("        <li><a href=\"").append(escapeXml(href)).append("\">")
+                        .append(escapeXml(label)).append("</a></li>\n");
+            }
+        }
     }
 
     private static String escapeXml(String s) {
@@ -71,5 +92,17 @@ public class GenerateTOCPhase extends ProcessingPhase {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+    }
+
+    private static class TocBuilder {
+        private int next = 1;
+
+        int next() {
+            return next++;
+        }
+
+        int count() {
+            return next - 1;
+        }
     }
 }
