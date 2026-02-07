@@ -51,14 +51,14 @@ class GenerateXHTMLPhaseTest {
     }
 
     @Test
-    @DisplayName("GenerateXHTMLPhase renders container nodes with title and nested children")
+    @DisplayName("GenerateXHTMLPhase renders container nodes with nested children")
     void rendersContainerNodes() throws Exception {
         ProcessingContext context = createContext();
         context.setChapters(List.of(
-                ChapterNode.section("Chapter 1", List.of(
+                ChapterNode.sectionWithParagraphStyle(null, List.of(
                         ChapterNode.text("Intro text"),
                         ChapterNode.image("cover.png")
-                ))
+                ), "ParagraphStyle/Body")
         ));
         context.addMetadata("language", "en");
 
@@ -66,7 +66,6 @@ class GenerateXHTMLPhaseTest {
         phase.process(context);
 
         String xhtml = new String(context.getXhtmlContent(), StandardCharsets.UTF_8);
-        assertThat(xhtml).contains("<h2>Chapter 1</h2>");
         assertThat(xhtml).contains("<p>Intro text</p>");
         assertThat(xhtml).contains("images/cover.png");
     }

@@ -36,11 +36,11 @@ class GenerateTOCPhaseTest {
     }
 
     @Test
-    @DisplayName("GenerateTOCPhase uses section title when present")
-    void usesSectionTitle() throws Exception {
+    @DisplayName("GenerateTOCPhase uses Chapter N fallback when section has no title")
+    void usesChapterFallbackWhenNoTitle() throws Exception {
         ProcessingContext context = createContext();
         context.setChapters(List.of(
-                ChapterNode.section("Introduction", List.of(ChapterNode.text("Content")))
+                ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Content")), "ParagraphStyle/Body")
         ));
         context.addMetadata("language", "en");
 
@@ -48,7 +48,7 @@ class GenerateTOCPhaseTest {
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);
-        assertThat(toc).contains(">Introduction<");
+        assertThat(toc).contains(">Chapter 1<");
     }
 
     @Test
@@ -56,10 +56,10 @@ class GenerateTOCPhaseTest {
     void buildsNestedToc() throws Exception {
         ProcessingContext context = createContext();
         context.setChapters(List.of(
-                ChapterNode.section("Part 1", List.of(
+                ChapterNode.sectionWithParagraphStyle(null, List.of(
                         ChapterNode.text("A"),
                         ChapterNode.text("B")
-                ))
+                ), "ParagraphStyle/Body")
         ));
         context.addMetadata("language", "en");
 
@@ -67,7 +67,7 @@ class GenerateTOCPhaseTest {
         phase.process(context);
 
         String toc = new String(context.getTocContent(), StandardCharsets.UTF_8);
-        assertThat(toc).contains(">Part 1<");
+        assertThat(toc).contains(">Chapter 1<");
         assertThat(toc).contains("<ol>");
         assertThat(toc).contains("section-1");
         assertThat(toc).contains("section-2");

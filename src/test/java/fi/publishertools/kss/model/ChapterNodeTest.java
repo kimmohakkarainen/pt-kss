@@ -41,18 +41,6 @@ class ChapterNodeTest {
     }
 
     @Test
-    @DisplayName("ChapterNode.section creates container with children")
-    void sectionFactory() {
-        ChapterNode child = ChapterNode.text("Content");
-        ChapterNode node = ChapterNode.section("Chapter 1", List.of(child));
-        assertThat(node.isContainer()).isTrue();
-        assertThat(node.isText()).isFalse();
-        assertThat(node.isImage()).isFalse();
-        assertThat(node.title()).isEqualTo("Chapter 1");
-        assertThat(node.children()).containsExactly(child);
-    }
-
-    @Test
     @DisplayName("ChapterNode.text with appliedStyle stores style")
     void textWithCharacterStyle() {
         ChapterNode node = ChapterNode.text("Hello", "CharacterStyle/Bold");

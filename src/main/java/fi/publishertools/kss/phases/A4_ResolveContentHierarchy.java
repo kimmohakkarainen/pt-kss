@@ -12,7 +12,6 @@ import fi.publishertools.kss.model.content.ChapterNode;
 import fi.publishertools.kss.model.content.CharacterStyleRangeNode;
 import fi.publishertools.kss.model.content.ImageNode;
 import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
-import fi.publishertools.kss.model.content.SectionNode;
 import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
@@ -60,11 +59,6 @@ public class A4_ResolveContentHierarchy extends ProcessingPhase {
 				output.add(new CharacterStyleRangeNode(node.text(), simplifyStyle(node.appliedStyle())));
 			} else if(node instanceof ImageNode) {
 				output.add(new ImageNode(node.imageRef(), simplifyStyle(node.appliedStyle())));
-			} else if(node instanceof SectionNode) {
-				List<ChapterNode> children = simplifyStyles(node.children());
-				if(children != null) {
-					output.add(new SectionNode(node.title(), children));
-				}
 			} else {
 				// do nothing
 			}

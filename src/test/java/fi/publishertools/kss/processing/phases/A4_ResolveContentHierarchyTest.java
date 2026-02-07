@@ -111,7 +111,7 @@ class A4_ResolveContentHierarchyTest {
         byte[] zipBytes = createZipWithStyles(createStylesXml());
         ProcessingContext context = createContext(zipBytes);
         context.setChapters(List.of(
-                ChapterNode.section("Manual Chapter", List.of(ChapterNode.text("Manual content")))
+                ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Manual content")), "ParagraphStyle/Body")
         ));
 
         A4_ResolveContentHierarchy phase = new A4_ResolveContentHierarchy();
@@ -119,7 +119,6 @@ class A4_ResolveContentHierarchyTest {
 
         List<ChapterNode> chapters = context.getChapters();
         assertThat(chapters).hasSize(1);
-        assertThat(chapters.get(0).title()).isEqualTo("Manual Chapter");
         assertThat(chapters.get(0).children()).hasSize(1);
         assertThat(chapters.get(0).children().get(0).text()).isEqualTo("Manual content");
     }
