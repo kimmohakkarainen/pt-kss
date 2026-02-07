@@ -159,13 +159,13 @@ class ExtractChaptersPhaseTest {
         List<ChapterNode> chapters = context.getChapters();
         assertThat(chapters).hasSize(1);
         ChapterNode storyNode = chapters.get(0);
-        assertThat(storyNode.appliedTOCStyle()).isEqualTo("TOCStyle/Chapter");
+        assertThat(storyNode.appliedStyle()).isEqualTo("TOCStyle/Chapter");
 
         ChapterNode psr = storyNode.children().get(0);
-        assertThat(psr.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Heading1");
+        assertThat(psr.appliedStyle()).isEqualTo("ParagraphStyle/Heading1");
 
         ChapterNode textNode = psr.children().get(0);
-        assertThat(textNode.appliedCharacterStyle()).isEqualTo("CharacterStyle/Bold");
+        assertThat(textNode.appliedStyle()).isEqualTo("CharacterStyle/Bold");
         assertThat(textNode.text()).isEqualTo("Styled text");
     }
 
@@ -199,9 +199,9 @@ class ExtractChaptersPhaseTest {
         ChapterNode psr = chapters.get(0).children().get(0);
         assertThat(psr.children()).hasSize(2);
         assertThat(psr.children().get(0).text()).isEqualTo("Italic part");
-        assertThat(psr.children().get(0).appliedCharacterStyle()).isEqualTo("CharacterStyle/Italic");
+        assertThat(psr.children().get(0).appliedStyle()).isEqualTo("CharacterStyle/Italic");
         assertThat(psr.children().get(1).text()).isEqualTo(" and normal part");
-        assertThat(psr.children().get(1).appliedCharacterStyle()).isEqualTo("CharacterStyle/$ID/[No character style]");
+        assertThat(psr.children().get(1).appliedStyle()).isEqualTo("CharacterStyle/$ID/[No character style]");
     }
 
     private static byte[] createZipWithStory(String entryName, String content) throws Exception {

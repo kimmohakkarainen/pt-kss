@@ -8,7 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.content.CharacterStyleRangeNode;
 import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.ImageNode;
+import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
+import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
 
@@ -69,7 +73,7 @@ public class C1_GenerateXHTML extends ProcessingPhase {
     private static void renderNode(ChapterNode node, StringBuilder out, SectionIdCounter counter) {
         if (node.isContainer()) {
             String sectionId = "section-" + counter.next();
-            String dataAttrs = buildStyleDataAttributes(node.appliedTOCStyle(), node.appliedParagraphStyle(), null);
+            String dataAttrs = buildStyleDataAttributes(node);
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">\n");
             if (node.title() != null && !node.title().isEmpty()) {
                 out.append("      <h2>").append(XmlUtils.escapeXml(node.title())).append("</h2>\n");
@@ -78,13 +82,13 @@ public class C1_GenerateXHTML extends ProcessingPhase {
             out.append("    </section>\n");
         } else if (node.isText()) {
             String sectionId = "section-" + counter.next();
-            String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
+            String dataAttrs = buildStyleDataAttributes(node);
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
                     .append("<p>").append(XmlUtils.escapeXml(node.text() != null ? node.text() : "")).append("</p>")
                     .append("</section>\n");
         } else if (node.isImage()) {
             String sectionId = "section-" + counter.next();
-            String dataAttrs = buildStyleDataAttributes(null, null, node.appliedCharacterStyle());
+            String dataAttrs = buildStyleDataAttributes(node);
             String src = IMAGES_PATH + XmlUtils.escapeXml(node.imageRef() != null ? node.imageRef() : "");
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
                     .append("<figure><img src=\"").append(src).append("\" alt=\"\"/></figure>")
@@ -92,16 +96,19 @@ public class C1_GenerateXHTML extends ProcessingPhase {
         }
     }
 
-    private static String buildStyleDataAttributes(String appliedTOCStyle, String appliedParagraphStyle, String appliedCharacterStyle) {
+    private static String buildStyleDataAttributes(ChapterNode node) {
         StringBuilder sb = new StringBuilder();
-        if (appliedTOCStyle != null && !appliedTOCStyle.isEmpty()) {
-            sb.append(" data-toc-style=\"").append(XmlUtils.escapeXml(appliedTOCStyle)).append("\"");
+        String style = node.appliedStyle();
+        if (style == null || style.isEmpty()) {
+            return sb.toString();
         }
-        if (appliedParagraphStyle != null && !appliedParagraphStyle.isEmpty()) {
-            sb.append(" data-paragraph-style=\"").append(XmlUtils.escapeXml(appliedParagraphStyle)).append("\"");
-        }
-        if (appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty()) {
-            sb.append(" data-character-style=\"").append(XmlUtils.escapeXml(appliedCharacterStyle)).append("\"");
+        String escaped = XmlUtils.escapeXml(style);
+        if (node instanceof StoryNode) {
+            sb.append(" data-toc-style=\"").append(escaped).append("\"");
+        } else if (node instanceof ParagraphStyleRangeNode) {
+            sb.append(" data-paragraph-style=\"").append(escaped).append("\"");
+        } else if (node instanceof CharacterStyleRangeNode || node instanceof ImageNode) {
+            sb.append(" data-character-style=\"").append(escaped).append("\"");
         }
         return sb.toString();
     }

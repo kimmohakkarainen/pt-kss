@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * IDML ParagraphStyleRange element: container with AppliedParagraphStyle.
  */
-public record ParagraphStyleRangeNode(@JsonProperty("children") List<ChapterNode> children, @JsonProperty("appliedParagraphStyle") String appliedParagraphStyle) implements ChapterNode {
+public record ParagraphStyleRangeNode(@JsonProperty("children") List<ChapterNode> children, @JsonProperty("appliedStyle") String appliedStyle) implements ChapterNode {
 
     @Override
     public List<ChapterNode> children() {

@@ -121,7 +121,7 @@ public class A4_ResolveContentHierarchy extends ProcessingPhase {
         for (ChapterNode node : chapters) {
             if (node instanceof StoryNode story) {
                 List<ChapterNode> reorganizedChildren = reorganizeStoryChildren(story.children(), styleToLevel);
-                result.add(new StoryNode(reorganizedChildren, story.appliedTOCStyle()));
+                result.add(new StoryNode(reorganizedChildren, story.appliedStyle()));
             } else {
                 result.add(node);
             }
@@ -155,7 +155,7 @@ public class A4_ResolveContentHierarchy extends ProcessingPhase {
 
     private int getLevel(ChapterNode node, Map<String, Integer> styleToLevel) {
         if (node instanceof ParagraphStyleRangeNode psr) {
-            String style = psr.appliedParagraphStyle();
+            String style = psr.appliedStyle();
             if (style != null && styleToLevel.containsKey(style)) {
                 return styleToLevel.get(style);
             }
@@ -180,7 +180,7 @@ public class A4_ResolveContentHierarchy extends ProcessingPhase {
                 TreeBuildResult childResult = rebuildTree(items, i + 1, item.level());
                 List<ChapterNode> newChildren = new ArrayList<>(psr.children());
                 newChildren.addAll(childResult.nodes());
-                result.add(new ParagraphStyleRangeNode(newChildren, psr.appliedParagraphStyle()));
+                result.add(new ParagraphStyleRangeNode(newChildren, psr.appliedStyle()));
                 i = childResult.nextIndex();
             } else {
                 result.add(node);

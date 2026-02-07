@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Has AppliedCharacterStyle from the parent CharacterStyleRange.
  */
 public record ImageNode(@JsonProperty("imageRef") String imageRef,
-        @JsonProperty("appliedCharacterStyle") String appliedCharacterStyle) implements ChapterNode {
+        @JsonProperty("appliedStyle") String appliedStyle) implements ChapterNode {
 
     @Override
     public String imageRef() {

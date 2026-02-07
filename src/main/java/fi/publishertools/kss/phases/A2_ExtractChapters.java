@@ -71,9 +71,9 @@ public class A2_ExtractChapters extends ProcessingPhase {
 		}
 		List<Element> stories = XmlUtils.findElementsByLocalName(root, "Story");
 		for (Element story : stories) {
-			String appliedTOCStyle = getAttributeValue(story, ATTR_APPLIED_TOC_STYLE);
+			String appliedStyle = getAttributeValue(story, ATTR_APPLIED_TOC_STYLE);
 			List<ChapterNode> recursed = recurseNodes(story);
-			result.add(new StoryNode(recursed, appliedTOCStyle));
+			result.add(new StoryNode(recursed, appliedStyle));
 		}
 		return result;
 	}
@@ -105,7 +105,7 @@ public class A2_ExtractChapters extends ProcessingPhase {
 			String fileName = ZipUtils.extractFileNameFromUri(decodedUri);
 			return new ImageNode(fileName, null);
 		} else if ("CharacterStyleRange".equals(localName)) {
-			String appliedCharacterStyle = getAttributeValue(element, ATTR_APPLIED_CHARACTER_STYLE);
+			String appliedStyle = getAttributeValue(element, ATTR_APPLIED_CHARACTER_STYLE);
 			List<ChapterNode> children = recurseNodes(element);
 			if (children.isEmpty()) {
 				return null;
@@ -113,16 +113,16 @@ public class A2_ExtractChapters extends ProcessingPhase {
 			if (children.size() == 1) {
 				ChapterNode child = children.get(0);
 				if (child instanceof CharacterStyleRangeNode) {
-					return new CharacterStyleRangeNode(child.text(), appliedCharacterStyle);
+					return new CharacterStyleRangeNode(child.text(), appliedStyle);
 				}
 				if (child instanceof ImageNode) {
-					return new ImageNode(child.imageRef(), appliedCharacterStyle);
+					return new ImageNode(child.imageRef(), appliedStyle);
 				}
 			}
-			return new ParagraphStyleRangeNode(children, appliedCharacterStyle);
+			return new ParagraphStyleRangeNode(children, appliedStyle);
 		} else if ("ParagraphStyleRange".equals(localName)) {
-			String appliedParagraphStyle = getAttributeValue(element, ATTR_APPLIED_PARAGRAPH_STYLE);
-			return new ParagraphStyleRangeNode(recurseNodes(element), appliedParagraphStyle);
+			String appliedStyle = getAttributeValue(element, ATTR_APPLIED_PARAGRAPH_STYLE);
+			return new ParagraphStyleRangeNode(recurseNodes(element), appliedStyle);
 		} else {
 			List<ChapterNode> contents = recurseNodes(element);
 			if(contents.isEmpty()) {

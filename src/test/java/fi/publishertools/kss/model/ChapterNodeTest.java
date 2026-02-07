@@ -53,40 +53,40 @@ class ChapterNodeTest {
     }
 
     @Test
-    @DisplayName("ChapterNode.text with appliedCharacterStyle stores style")
+    @DisplayName("ChapterNode.text with appliedStyle stores style")
     void textWithCharacterStyle() {
         ChapterNode node = ChapterNode.text("Hello", "CharacterStyle/Bold");
         assertThat(node.isText()).isTrue();
         assertThat(node.text()).isEqualTo("Hello");
-        assertThat(node.appliedCharacterStyle()).isEqualTo("CharacterStyle/Bold");
+        assertThat(node.appliedStyle()).isEqualTo("CharacterStyle/Bold");
     }
 
     @Test
-    @DisplayName("ChapterNode.image with appliedCharacterStyle stores style")
+    @DisplayName("ChapterNode.image with appliedStyle stores style")
     void imageWithCharacterStyle() {
         ChapterNode node = ChapterNode.image("photo.jpg", "CharacterStyle/Italic");
         assertThat(node.isImage()).isTrue();
         assertThat(node.imageRef()).isEqualTo("photo.jpg");
-        assertThat(node.appliedCharacterStyle()).isEqualTo("CharacterStyle/Italic");
+        assertThat(node.appliedStyle()).isEqualTo("CharacterStyle/Italic");
     }
 
     @Test
-    @DisplayName("ChapterNode.sectionWithTOCStyle stores AppliedTOCStyle")
+    @DisplayName("ChapterNode.sectionWithTOCStyle stores appliedStyle")
     void sectionWithTOCStyle() {
         ChapterNode child = ChapterNode.text("Content");
         ChapterNode node = ChapterNode.sectionWithTOCStyle(null, List.of(child), "TOCStyle/Chapter");
         assertThat(node.isContainer()).isTrue();
-        assertThat(node.appliedTOCStyle()).isEqualTo("TOCStyle/Chapter");
+        assertThat(node.appliedStyle()).isEqualTo("TOCStyle/Chapter");
         assertThat(node.children()).containsExactly(child);
     }
 
     @Test
-    @DisplayName("ChapterNode.sectionWithParagraphStyle stores AppliedParagraphStyle")
+    @DisplayName("ChapterNode.sectionWithParagraphStyle stores appliedStyle")
     void sectionWithParagraphStyle() {
         ChapterNode child = ChapterNode.text("Content");
         ChapterNode node = ChapterNode.sectionWithParagraphStyle(null, List.of(child), "ParagraphStyle/Heading1");
         assertThat(node.isContainer()).isTrue();
-        assertThat(node.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Heading1");
+        assertThat(node.appliedStyle()).isEqualTo("ParagraphStyle/Heading1");
         assertThat(node.children()).containsExactly(child);
     }
 
@@ -102,12 +102,12 @@ class ChapterNodeTest {
         ObjectMapper mapper = new ObjectMapper();
         String json = mapper.writeValueAsString(node);
         assertThat(json).contains("\"type\":\"story\"");
-        assertThat(json).contains("appliedTOCStyle");
+        assertThat(json).contains("appliedStyle");
         assertThat(json).contains("Hello");
 
         ChapterNode deserialized = mapper.readValue(json, ChapterNode.class);
         assertThat(deserialized).isInstanceOf(StoryNode.class);
-        assertThat(deserialized.appliedTOCStyle()).isEqualTo("TOCStyle/Chapter");
+        assertThat(deserialized.appliedStyle()).isEqualTo("TOCStyle/Chapter");
         assertThat(deserialized.children()).hasSize(1);
         assertThat(deserialized.children().get(0)).isInstanceOf(ParagraphStyleRangeNode.class);
         assertThat(deserialized.children().get(0).children().get(0).text()).isEqualTo("Hello");

@@ -84,7 +84,7 @@ class A4_ResolveContentHierarchyTest {
 
         ChapterNode topPsr = storyNode.children().get(0);
         assertThat(topPsr).isInstanceOf(ParagraphStyleRangeNode.class);
-        assertThat(topPsr.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Heading1");
+        assertThat(topPsr.appliedStyle()).isEqualTo("ParagraphStyle/Heading1");
         assertThat(topPsr.children()).hasSize(3);
 
         assertThat(topPsr.children().get(0).isText()).isTrue();
@@ -92,15 +92,15 @@ class A4_ResolveContentHierarchyTest {
 
         ChapterNode body1Node = topPsr.children().get(1);
         assertThat(body1Node).isInstanceOf(ParagraphStyleRangeNode.class);
-        assertThat(body1Node.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Body");
+        assertThat(body1Node.appliedStyle()).isEqualTo("ParagraphStyle/Body");
         assertThat(body1Node.children().get(0).text()).isEqualTo("Intro text");
 
         ChapterNode h2Node = topPsr.children().get(2);
         assertThat(h2Node).isInstanceOf(ParagraphStyleRangeNode.class);
-        assertThat(h2Node.appliedParagraphStyle()).isEqualTo("ParagraphStyle/Heading2");
+        assertThat(h2Node.appliedStyle()).isEqualTo("ParagraphStyle/Heading2");
         assertThat(h2Node.children()).hasSize(2);
         assertThat(h2Node.children().get(0).text()).isEqualTo("Section 1.1");
-        assertThat(h2Node.children().get(1).appliedParagraphStyle()).isEqualTo("ParagraphStyle/Body");
+        assertThat(h2Node.children().get(1).appliedStyle()).isEqualTo("ParagraphStyle/Body");
         assertThat(((ParagraphStyleRangeNode) h2Node.children().get(1)).children().get(0).text()).isEqualTo("Section content");
     }
 

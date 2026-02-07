@@ -13,10 +13,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * <p>
  * Five variants:
  * <ul>
- *   <li><b>StoryNode</b> – IDML Story container with AppliedTOCStyle</li>
- *   <li><b>ParagraphStyleRangeNode</b> – IDML ParagraphStyleRange container with AppliedParagraphStyle</li>
- *   <li><b>CharacterStyleRangeNode</b> – IDML CharacterStyleRange text leaf with AppliedCharacterStyle</li>
- *   <li><b>ImageNode</b> – Image reference (from Link) with AppliedCharacterStyle</li>
+ *   <li><b>StoryNode</b> – IDML Story container with appliedStyle (TOC)</li>
+ *   <li><b>ParagraphStyleRangeNode</b> – IDML ParagraphStyleRange container with appliedStyle (paragraph)</li>
+ *   <li><b>CharacterStyleRangeNode</b> – IDML CharacterStyleRange text leaf with appliedStyle (character)</li>
+ *   <li><b>ImageNode</b> – Image reference (from Link) with appliedStyle (character)</li>
  *   <li><b>SectionNode</b> – Generic section with optional title (for manual construction)</li>
  * </ul>
  */
@@ -51,15 +51,7 @@ public sealed interface ChapterNode
         return null;
     }
 
-    default String appliedTOCStyle() {
-        return null;
-    }
-
-    default String appliedParagraphStyle() {
-        return null;
-    }
-
-    default String appliedCharacterStyle() {
+    default String appliedStyle() {
         return null;
     }
 
@@ -84,31 +76,31 @@ public sealed interface ChapterNode
         return new CharacterStyleRangeNode(text != null ? text : "", null);
     }
 
-    static ChapterNode text(String text, String appliedCharacterStyle) {
+    static ChapterNode text(String text, String appliedStyle) {
         return new CharacterStyleRangeNode(text != null ? text : "",
-                appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty() ? appliedCharacterStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
     }
 
     static ChapterNode image(String imageRef) {
         return new ImageNode(imageRef != null ? imageRef : "", null);
     }
 
-    static ChapterNode image(String imageRef, String appliedCharacterStyle) {
+    static ChapterNode image(String imageRef, String appliedStyle) {
         return new ImageNode(imageRef != null ? imageRef : "",
-                appliedCharacterStyle != null && !appliedCharacterStyle.isEmpty() ? appliedCharacterStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
     }
 
     static ChapterNode section(String title, List<ChapterNode> children) {
         return new SectionNode(title, children != null ? List.copyOf(children) : Collections.emptyList());
     }
 
-    static ChapterNode sectionWithTOCStyle(String title, List<ChapterNode> children, String appliedTOCStyle) {
+    static ChapterNode sectionWithTOCStyle(String title, List<ChapterNode> children, String appliedStyle) {
         return new StoryNode(children != null ? List.copyOf(children) : Collections.emptyList(),
-                appliedTOCStyle != null && !appliedTOCStyle.isEmpty() ? appliedTOCStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
     }
 
-    static ChapterNode sectionWithParagraphStyle(String title, List<ChapterNode> children, String appliedParagraphStyle) {
+    static ChapterNode sectionWithParagraphStyle(String title, List<ChapterNode> children, String appliedStyle) {
         return new ParagraphStyleRangeNode(children != null ? List.copyOf(children) : Collections.emptyList(),
-                appliedParagraphStyle != null && !appliedParagraphStyle.isEmpty() ? appliedParagraphStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
     }
 }
