@@ -8,4 +8,4 @@ package fi.publishertools.kss.model;
  * @param fileName    Last path segment resolved from the URI; used as canonical key for image content
  * @param resourceFormat Normalized format (e.g. MIME type)
  */
-public record ImageInfo(String resourceUri, String fileName, String resourceFormat) {}
+public record ImageInfo(String resourceUri, String fileName, String resourceFormat) implements java.io.Serializable {}

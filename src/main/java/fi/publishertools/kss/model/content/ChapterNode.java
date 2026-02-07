@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value = ImageNode.class, name = "image"),
     @JsonSubTypes.Type(value = SectionNode.class, name = "section")
 })
-public sealed interface ChapterNode
+public sealed interface ChapterNode extends java.io.Serializable
         permits StoryNode, ParagraphStyleRangeNode, CharacterStyleRangeNode, ImageNode, SectionNode {
 
     @JsonIgnore

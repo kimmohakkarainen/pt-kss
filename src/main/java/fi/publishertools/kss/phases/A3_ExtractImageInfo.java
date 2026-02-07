@@ -3,6 +3,7 @@ package fi.publishertools.kss.phases;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.w3c.dom.Element;
 
 import fi.publishertools.kss.model.ImageInfo;
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.serialization.ProcessingContextSerializer;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
 import fi.publishertools.kss.util.ZipUtils;
@@ -28,6 +30,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
 
     private static final Logger logger = LoggerFactory.getLogger(A3_ExtractImageInfo.class);
 
+    private static final String KSS_A3_OUTPUT_PATH = "./a3-context.object";
     private static final String ATTR_LINK_RESOURCE_URI = "LinkResourceURI";
     private static final String ATTR_LINK_RESOURCE_FORMAT = "LinkResourceFormat";
 
@@ -42,6 +45,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         if (storyDocs == null || storyDocs.isEmpty()) {
             context.setImageList(imageList);
             logger.debug("No story documents for file {}, image list empty", context.getFileId());
+            serializeIfConfigured(context);
             return;
         }
 
@@ -70,6 +74,19 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         }
 
         logger.debug("Extracted {} image entries for file {} ({} with content from ZIP)", imageList.size(), context.getFileId(), context.getImageContent().size());
+
+        serializeIfConfigured(context);
+    }
+
+    private static void serializeIfConfigured(ProcessingContext context) {
+        if (KSS_A3_OUTPUT_PATH != null) {
+            try {
+                ProcessingContextSerializer.serialize(context, Path.of(KSS_A3_OUTPUT_PATH));
+                logger.debug("Serialized ProcessingContext to {} for file {}", KSS_A3_OUTPUT_PATH, context.getFileId());
+            } catch (Exception e) {
+                logger.warn("Failed to serialize ProcessingContext to {} for file {}: {}", KSS_A3_OUTPUT_PATH, context.getFileId(), e.getMessage());
+            }
+        }
     }
 
     private static byte[] extractEntryWithEncodedFallback(byte[] zipBytes, String entryName) throws IOException {
