@@ -15,6 +15,7 @@ import fi.publishertools.kss.phases.C3_CreatePackageOpf;
 import fi.publishertools.kss.phases.A2_ExtractChapters;
 import fi.publishertools.kss.phases.A1_ExtractStories;
 import fi.publishertools.kss.phases.A3_ExtractImageInfo;
+import fi.publishertools.kss.phases.A4_ResolveContentHierarchy;
 import fi.publishertools.kss.phases.C5_Finalization;
 import fi.publishertools.kss.phases.C2_GenerateTableOfContents;
 import fi.publishertools.kss.phases.C1_GenerateXHTML;
@@ -32,7 +33,7 @@ public class ProcessingPipelineService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProcessingPipelineService.class);
     private static final String PHASE_THREAD_PREFIX = "phase-";
-    private static final int CHECK_MANDATORY_PHASE_INDEX = 3;
+    private static final int CHECK_MANDATORY_PHASE_INDEX = 4;
 
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
@@ -116,6 +117,7 @@ public class ProcessingPipelineService {
         phases.add(new A1_ExtractStories());
         phases.add(new A2_ExtractChapters());
         phases.add(new A3_ExtractImageInfo());
+        phases.add(new A4_ResolveContentHierarchy());
         phases.add(new B1_CheckMandatoryInformation());
         phases.add(new C1_GenerateXHTML());
         phases.add(new C2_GenerateTableOfContents());
