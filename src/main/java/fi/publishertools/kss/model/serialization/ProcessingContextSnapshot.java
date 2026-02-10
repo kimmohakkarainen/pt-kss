@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-import fi.publishertools.kss.model.ImageInfo;
 import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.ImageNode;
 
 /**
  * Serializable DTO for ProcessingContext.
@@ -23,7 +23,7 @@ public record ProcessingContextSnapshot(
         byte[] packageOpf,
         List<byte[]> storiesList,
         List<ChapterNode> chapters,
-        List<ImageInfo> imageList,
+        List<ImageNode> imageList,
         Map<String, byte[]> imageContent,
         byte[] xhtmlContent,
         byte[] tocContent,

@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.publishertools.kss.exception.MandatoryMetadataMissingException;
-import fi.publishertools.kss.model.ImageInfo;
+import fi.publishertools.kss.model.content.ImageNode;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.processing.ProcessingPhase;
 
@@ -75,9 +75,9 @@ public class B1_CheckMandatoryInformation extends ProcessingPhase {
      */
     public static List<String> getMissingImages(ProcessingContext context) {
         Set<String> missing = new LinkedHashSet<>();
-        List<ImageInfo> imageList = context.getImageList();
+        List<ImageNode> imageList = context.getImageList();
         if (imageList != null) {
-            for (ImageInfo info : imageList) {
+            for (ImageNode info : imageList) {
                 String fileName = info.fileName();
                 if (fileName != null && !fileName.trim().isEmpty()) {
                     byte[] content = context.getImageContent(fileName);

@@ -80,11 +80,11 @@ public sealed interface ChapterNode extends java.io.Serializable
     }
 
     static ChapterNode image(String imageRef) {
-        return new ImageNode(imageRef != null ? imageRef : "", null);
+        return new ImageNode(null, imageRef != null ? imageRef : "", null, null);
     }
 
     static ChapterNode image(String imageRef, String appliedStyle) {
-        return new ImageNode(imageRef != null ? imageRef : "",
+        return new ImageNode(null, imageRef != null ? imageRef : "", null,
                 appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
     }
 

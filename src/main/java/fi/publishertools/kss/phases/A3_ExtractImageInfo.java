@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import fi.publishertools.kss.model.ImageInfo;
 import fi.publishertools.kss.model.ProcessingContext;
+import fi.publishertools.kss.model.content.ImageNode;
 import fi.publishertools.kss.model.serialization.ProcessingContextSerializer;
 import fi.publishertools.kss.processing.ProcessingPhase;
 import fi.publishertools.kss.util.XmlUtils;
@@ -41,7 +41,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         byte[] zipBytes = context.getOriginalFileContents();
         List<Document> storyDocs = context.getStoriesList();
 
-        List<ImageInfo> imageList = new ArrayList<>();
+        List<ImageNode> imageList = new ArrayList<>();
         if (storyDocs == null || storyDocs.isEmpty()) {
             context.setImageList(imageList);
             logger.debug("No story documents for file {}, image list empty", context.getFileId());
@@ -50,7 +50,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         }
 
         for (Document doc : storyDocs) {
-            List<ImageInfo> images = collectImagesFromStoryDocument(doc);
+            List<ImageNode> images = collectImagesFromStoryDocument(doc);
             imageList.addAll(images);
         }
 
@@ -59,7 +59,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
         // Populate imageContent from ZIP for each unique resource URI; key by filename
         Set<String> processedUris = new LinkedHashSet<>();
         if (zipBytes != null && zipBytes.length > 0) {
-        for (ImageInfo info : imageList) {
+        for (ImageNode info : imageList) {
             String uri = info.resourceUri();
             String fileName = info.fileName();
             if (uri != null && !uri.trim().isEmpty() && fileName != null && !fileName.isEmpty()
@@ -155,8 +155,8 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
     /**
      * Find all Link elements in the document and extract LinkResourceURI and LinkResourceFormat.
      */
-    private static List<ImageInfo> collectImagesFromStoryDocument(Document doc) {
-        List<ImageInfo> result = new ArrayList<>();
+    private static List<ImageNode> collectImagesFromStoryDocument(Document doc) {
+        List<ImageNode> result = new ArrayList<>();
         Element root = doc.getDocumentElement();
         if (root == null) {
             return result;
@@ -168,7 +168,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
             String fileName = ZipUtils.extractFileNameFromUri(decodedUri);
             String format = link.getAttribute(ATTR_LINK_RESOURCE_FORMAT);
             String normalizedFormat = normalizeFormat(format != null ? format : "");
-            result.add(new ImageInfo(decodedUri, fileName, normalizedFormat));
+            result.add(new ImageNode(decodedUri, fileName, normalizedFormat, null));
         }
         return result;
     }

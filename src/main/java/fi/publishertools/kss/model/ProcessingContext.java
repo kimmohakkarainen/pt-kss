@@ -8,6 +8,7 @@ import java.util.Map;
 import org.w3c.dom.Document;
 
 import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.ImageNode;
 
 /**
  * Context object that carries file data and metadata through processing phases.
@@ -23,7 +24,7 @@ public class ProcessingContext {
     private byte[] packageOpf;
     private List<Document> storiesList;
     private List<ChapterNode> chapters;
-    private List<ImageInfo> imageList;
+    private List<ImageNode> imageList;
     private final Map<String, byte[]> imageContent;
     private byte[] xhtmlContent;
     private byte[] tocContent;
@@ -93,11 +94,11 @@ public class ProcessingContext {
         this.chapters = chapters;
     }
 
-    public List<ImageInfo> getImageList() {
+    public List<ImageNode> getImageList() {
         return imageList;
     }
 
-    public void setImageList(List<ImageInfo> imageList) {
+    public void setImageList(List<ImageNode> imageList) {
         this.imageList = imageList;
     }
 
