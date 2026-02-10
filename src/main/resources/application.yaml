@@ -17,3 +17,8 @@ kss:
   upload:
     # Maximum allowed upload size exposed as configuration (10MB)
     max-size-bytes: 10485760
+  ollama:
+    # Development: cache image description results per image to avoid repeated model calls
+    cache-enabled: true
+    # Path to cache file (tilde resolved to user home). Used only when cache-enabled is true
+    cache-path: ollama-image-cache.json

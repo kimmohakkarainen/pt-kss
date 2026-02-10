@@ -1,5 +1,7 @@
 package fi.publishertools.kss.service;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import fi.publishertools.kss.integration.ollama.CachingOllamaClient;
+import fi.publishertools.kss.integration.ollama.OllamaCacheProperties;
+import fi.publishertools.kss.integration.ollama.OllamaClient;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.C4_AssembleEPUB;
@@ -39,14 +44,17 @@ public class ProcessingPipelineService {
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
     private final PendingMetadataStore pendingMetadataStore;
+    private final OllamaCacheProperties ollamaCacheProperties;
     private ProcessingPipeline pipeline;
 
     public ProcessingPipelineService(ProcessingStatusStore statusStore,
                                      ProcessedResultStore resultStore,
-                                     PendingMetadataStore pendingMetadataStore) {
+                                     PendingMetadataStore pendingMetadataStore,
+                                     OllamaCacheProperties ollamaCacheProperties) {
         this.statusStore = statusStore;
         this.resultStore = resultStore;
         this.pendingMetadataStore = pendingMetadataStore;
+        this.ollamaCacheProperties = ollamaCacheProperties;
     }
 
     @PostConstruct
@@ -114,13 +122,14 @@ public class ProcessingPipelineService {
     }
 
     private List<ProcessingPhase> createPhases() {
+        OllamaClient ollamaClient = createOllamaClient();
         List<ProcessingPhase> phases = new ArrayList<>();
         phases.add(new A1_ExtractStories());
         phases.add(new A2_ExtractChapters());
         phases.add(new A3_ExtractImageInfo());
         phases.add(new A4_ResolveContentHierarchy());
         phases.add(new B1_CheckMandatoryInformation());
-        phases.add(new B2_ProposeImageAltTexts());
+        phases.add(new B2_ProposeImageAltTexts(ollamaClient));
         phases.add(new C1_GenerateXHTML());
         phases.add(new C2_GenerateTableOfContents());
         phases.add(new C3_CreatePackageOpf());
@@ -128,5 +137,18 @@ public class ProcessingPipelineService {
         phases.add(new C5_Finalization());
         logger.info("Created {} processing phases", phases.size());
         return phases;
+    }
+
+    private OllamaClient createOllamaClient() {
+        if (ollamaCacheProperties == null || !ollamaCacheProperties.isCacheEnabled()) {
+            return new OllamaClient();
+        }
+        String rawPath = ollamaCacheProperties.getCachePath();
+        if (rawPath == null || rawPath.isBlank()) {
+            return new OllamaClient();
+        }
+        String resolved = rawPath.trim().replace("~", System.getProperty("user.home", ""));
+        Path cacheFile = Paths.get(resolved).normalize();
+        return new CachingOllamaClient(new OllamaClient(), cacheFile);
     }
 }
