@@ -11,6 +11,7 @@ import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.C4_AssembleEPUB;
 import fi.publishertools.kss.phases.B1_CheckMandatoryInformation;
+import fi.publishertools.kss.phases.B2_ProposeImageAltTexts;
 import fi.publishertools.kss.phases.C3_CreatePackageOpf;
 import fi.publishertools.kss.phases.A2_ExtractChapters;
 import fi.publishertools.kss.phases.A1_ExtractStories;
@@ -119,6 +120,7 @@ public class ProcessingPipelineService {
         phases.add(new A3_ExtractImageInfo());
         phases.add(new A4_ResolveContentHierarchy());
         phases.add(new B1_CheckMandatoryInformation());
+        phases.add(new B2_ProposeImageAltTexts());
         phases.add(new C1_GenerateXHTML());
         phases.add(new C2_GenerateTableOfContents());
         phases.add(new C3_CreatePackageOpf());

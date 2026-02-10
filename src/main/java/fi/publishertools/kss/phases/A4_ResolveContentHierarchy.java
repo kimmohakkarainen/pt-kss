@@ -82,7 +82,7 @@ public class A4_ResolveContentHierarchy extends ProcessingPhase {
 			} else if (node instanceof CharacterStyleRangeNode) {
 				output.add(new CharacterStyleRangeNode(node.text(), maps.simplify(node.appliedStyle())));
 			} else if (node instanceof ImageNode img) {
-				output.add(new ImageNode(img.resourceUri(), img.fileName(), img.resourceFormat(), maps.simplify(node.appliedStyle())));
+				output.add(new ImageNode(img.resourceUri(), img.fileName(), img.resourceFormat(), maps.simplify(node.appliedStyle()), img.alternateText()));
 			} else {
 				// do nothing
 			}

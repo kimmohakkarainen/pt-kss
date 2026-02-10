@@ -168,7 +168,7 @@ public class A3_ExtractImageInfo extends ProcessingPhase {
             String fileName = ZipUtils.extractFileNameFromUri(decodedUri);
             String format = link.getAttribute(ATTR_LINK_RESOURCE_FORMAT);
             String normalizedFormat = normalizeFormat(format != null ? format : "");
-            result.add(new ImageNode(decodedUri, fileName, normalizedFormat, null));
+            result.add(new ImageNode(decodedUri, fileName, normalizedFormat, null, null));
         }
         return result;
     }

@@ -90,8 +90,12 @@ public class C1_GenerateXHTML extends ProcessingPhase {
             String sectionId = "section-" + counter.next();
             String dataAttrs = buildStyleDataAttributes(node);
             String src = IMAGES_PATH + XmlUtils.escapeXml(node.imageRef() != null ? node.imageRef() : "");
+            String alt = "";
+            if (node instanceof ImageNode img && img.alternateText() != null && !img.alternateText().isBlank()) {
+                alt = XmlUtils.escapeXml(img.alternateText());
+            }
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
-                    .append("<figure><img src=\"").append(src).append("\" alt=\"\"/></figure>")
+                    .append("<figure><img src=\"").append(src).append("\" alt=\"").append(alt).append("\"/></figure>")
                     .append("</section>\n");
         }
     }

@@ -103,7 +103,7 @@ public class A2_ExtractChapters extends ProcessingPhase {
 			String uri = element.getAttribute(ATTR_LINK_RESOURCE_URI);
 			String decodedUri = ZipUtils.decodeUri(uri != null ? uri : "");
 			String fileName = ZipUtils.extractFileNameFromUri(decodedUri);
-			return new ImageNode(null, fileName, null, null);
+			return new ImageNode(null, fileName, null, null, null);
 		} else if ("CharacterStyleRange".equals(localName)) {
 			String appliedStyle = getAttributeValue(element, ATTR_APPLIED_CHARACTER_STYLE);
 			List<ChapterNode> children = recurseNodes(element);
@@ -116,7 +116,7 @@ public class A2_ExtractChapters extends ProcessingPhase {
 					return new CharacterStyleRangeNode(child.text(), appliedStyle);
 				}
 				if (child instanceof ImageNode img) {
-					return new ImageNode(img.resourceUri(), img.fileName(), img.resourceFormat(), appliedStyle);
+					return new ImageNode(img.resourceUri(), img.fileName(), img.resourceFormat(), appliedStyle, img.alternateText());
 				}
 			}
 			return new ParagraphStyleRangeNode(children, appliedStyle);

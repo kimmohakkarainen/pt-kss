@@ -80,12 +80,12 @@ public sealed interface ChapterNode extends java.io.Serializable
     }
 
     static ChapterNode image(String imageRef) {
-        return new ImageNode(null, imageRef != null ? imageRef : "", null, null);
+        return new ImageNode(null, imageRef != null ? imageRef : "", null, null, null);
     }
 
     static ChapterNode image(String imageRef, String appliedStyle) {
         return new ImageNode(null, imageRef != null ? imageRef : "", null,
-                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null, null);
     }
 
     static ChapterNode sectionWithTOCStyle(String title, List<ChapterNode> children, String appliedStyle) {
