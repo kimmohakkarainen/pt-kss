@@ -15,6 +15,7 @@ import fi.publishertools.kss.integration.ollama.OllamaClient;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.phases.C4_AssembleEPUB;
+import fi.publishertools.kss.service.PendingAltTextStore;
 import fi.publishertools.kss.phases.B1_CheckMandatoryInformation;
 import fi.publishertools.kss.phases.B2_ProposeImageAltTexts;
 import fi.publishertools.kss.phases.C3_CreatePackageOpf;
@@ -40,20 +41,25 @@ public class ProcessingPipelineService {
     private static final Logger logger = LoggerFactory.getLogger(ProcessingPipelineService.class);
     private static final String PHASE_THREAD_PREFIX = "phase-";
     private static final int CHECK_MANDATORY_PHASE_INDEX = 4;
+    /** Phase index for C1_GenerateXHTML (resume point after alt text review). */
+    private static final int C1_PHASE_INDEX = 6;
 
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
     private final PendingMetadataStore pendingMetadataStore;
+    private final PendingAltTextStore pendingAltTextStore;
     private final OllamaCacheProperties ollamaCacheProperties;
     private ProcessingPipeline pipeline;
 
     public ProcessingPipelineService(ProcessingStatusStore statusStore,
                                      ProcessedResultStore resultStore,
                                      PendingMetadataStore pendingMetadataStore,
+                                     PendingAltTextStore pendingAltTextStore,
                                      OllamaCacheProperties ollamaCacheProperties) {
         this.statusStore = statusStore;
         this.resultStore = resultStore;
         this.pendingMetadataStore = pendingMetadataStore;
+        this.pendingAltTextStore = pendingAltTextStore;
         this.ollamaCacheProperties = ollamaCacheProperties;
     }
 
@@ -66,6 +72,7 @@ public class ProcessingPipelineService {
                 statusStore,
                 resultStore,
                 pendingMetadataStore,
+                pendingAltTextStore,
                 PHASE_THREAD_PREFIX
         );
         pipeline.start();
@@ -118,6 +125,26 @@ public class ProcessingPipelineService {
             logger.error("Interrupted while resubmitting file {} for mandatory check", context.getFileId(), e);
         } catch (Exception e) {
             logger.error("Failed to resubmit file {} for mandatory check", context.getFileId(), e);
+        }
+    }
+
+    /**
+     * Re-queue a ProcessingContext for C1_GenerateXHTML (e.g. after user has reviewed alt texts).
+     */
+    public void resubmitAfterAltTextReview(ProcessingContext context) {
+        if (pipeline == null) {
+            logger.error("Pipeline not initialized, cannot resubmit file {} after alt text review", context.getFileId());
+            return;
+        }
+        try {
+            statusStore.setStatus(context.getFileId(), ProcessingStatus.IN_PROGRESS);
+            pipeline.submitToPhase(C1_PHASE_INDEX, context);
+            logger.info("Resubmitted file {} after alt text review", context.getFileId());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Interrupted while resubmitting file {} after alt text review", context.getFileId(), e);
+        } catch (Exception e) {
+            logger.error("Failed to resubmit file {} after alt text review", context.getFileId(), e);
         }
     }
 

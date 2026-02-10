@@ -1,6 +1,7 @@
 package fi.publishertools.kss.processing.phases;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import fi.publishertools.kss.exception.AwaitingAltTextReviewException;
 import fi.publishertools.kss.integration.ollama.OllamaClient;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
@@ -30,14 +32,17 @@ class B2_ProposeImageAltTextsTest {
     }
 
     @Test
-    @DisplayName("image with content and no alt text gets generated description")
+    @DisplayName("image with content and no alt text gets generated description then awaits review")
     void fillsAlternateTextWhenMissing() {
         ProcessingContext context = contextWithImageList(
                 new ImageNode("uri", "img.png", "PNG", null, null));
         context.addImageContent("img.png", new byte[] { 1, 2, 3 });
         stubClient.setResult("A red apple");
 
-        phase.process(context);
+        assertThatThrownBy(() -> phase.process(context))
+                .isInstanceOf(AwaitingAltTextReviewException.class)
+                .extracting(ex -> ((AwaitingAltTextReviewException) ex).getContext())
+                .isSameAs(context);
 
         List<ImageNode> list = context.getImageList();
         assertThat(list).hasSize(1);
@@ -46,7 +51,7 @@ class B2_ProposeImageAltTextsTest {
 
     @Test
     @DisplayName("image with existing alt text is left unchanged")
-    void keepsExistingAltText() {
+    void keepsExistingAltText() throws Exception {
         ProcessingContext context = contextWithImageList(
                 new ImageNode("uri", "img.png", "PNG", null, "Existing description"));
         context.addImageContent("img.png", new byte[] { 1, 2, 3 });
@@ -61,7 +66,7 @@ class B2_ProposeImageAltTextsTest {
 
     @Test
     @DisplayName("image without content is skipped without exception")
-    void skipsWhenNoContent() {
+    void skipsWhenNoContent() throws Exception {
         ProcessingContext context = contextWithImageList(
                 new ImageNode("uri", "img.png", "PNG", null, null));
         // no context.addImageContent
@@ -76,7 +81,7 @@ class B2_ProposeImageAltTextsTest {
 
     @Test
     @DisplayName("client failure logs and skips image but phase completes")
-    void continuesOnOllamaFailure() {
+    void continuesOnOllamaFailure() throws Exception {
         ProcessingContext context = contextWithImageList(
                 new ImageNode("uri", "img.png", "PNG", null, null));
         context.addImageContent("img.png", new byte[] { 1, 2, 3 });
@@ -91,7 +96,7 @@ class B2_ProposeImageAltTextsTest {
 
     @Test
     @DisplayName("empty image list does nothing")
-    void emptyListNoOp() {
+    void emptyListNoOp() throws Exception {
         ProcessingContext context = contextWithImageList(List.of());
         phase.process(context);
         assertThat(context.getImageList()).isEmpty();
@@ -99,7 +104,7 @@ class B2_ProposeImageAltTextsTest {
 
     @Test
     @DisplayName("null image list does nothing")
-    void nullListNoOp() {
+    void nullListNoOp() throws Exception {
         ProcessingContext context = new ProcessingContext(
                 new StoredFile("f1", "x.idml", "application/zip", 0L, java.time.Instant.EPOCH, new byte[0]));
         context.setImageList(null);
@@ -108,7 +113,7 @@ class B2_ProposeImageAltTextsTest {
     }
 
     @Test
-    @DisplayName("alt text is also applied to ImageNodes in chapter tree")
+    @DisplayName("alt text is also applied to ImageNodes in chapter tree then awaits review")
     void altTextPropagatesToChapters() {
         ImageNode imageNode = new ImageNode("uri", "img.png", "PNG", null, null);
         ChapterNode paragraph = new ParagraphStyleRangeNode(List.of(imageNode), "ParagraphStyle/Body");
@@ -119,7 +124,8 @@ class B2_ProposeImageAltTextsTest {
         context.addImageContent("img.png", new byte[] { 1, 2, 3 });
         stubClient.setResult("Alt from Ollama");
 
-        phase.process(context);
+        assertThatThrownBy(() -> phase.process(context))
+                .isInstanceOf(AwaitingAltTextReviewException.class);
 
         // flat list updated
         assertThat(context.getImageList()).hasSize(1);

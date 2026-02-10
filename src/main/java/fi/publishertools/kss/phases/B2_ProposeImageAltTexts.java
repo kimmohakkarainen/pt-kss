@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fi.publishertools.kss.exception.AwaitingAltTextReviewException;
 import fi.publishertools.kss.integration.ollama.OllamaClient;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.content.ChapterNode;
@@ -36,7 +37,7 @@ public class B2_ProposeImageAltTexts extends ProcessingPhase {
 	}
 
 	@Override
-	public void process(ProcessingContext context) {
+	public void process(ProcessingContext context) throws AwaitingAltTextReviewException {
 		List<ImageNode> imageList = context.getImageList();
 		if (imageList == null || imageList.isEmpty()) {
 			return;
@@ -70,6 +71,9 @@ public class B2_ProposeImageAltTexts extends ProcessingPhase {
 				mutateChapterNode(node, altByFileName);
 			}
 		}
+
+		// Pause for user to review and edit proposed alt texts.
+		throw new AwaitingAltTextReviewException(context);
 	}
 
 	private Map<String, String> buildAltTextMap(ProcessingContext context, List<ImageNode> imageList) {

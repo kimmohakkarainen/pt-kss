@@ -32,9 +32,9 @@ public class StatusController {
         this.resultStore = resultStore;
     }
 
-    @Operation(summary = "Get processing status", description = "Check the processing status of an uploaded file")
+    @Operation(summary = "Get processing status", description = "Check the processing status of an uploaded file. Possible status values: ready, in-progress, awaiting-metadata, awaiting-alt-texts, error.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Current status (ready, in-progress, awaiting-metadata, or error)"),
+            @ApiResponse(responseCode = "200", description = "Current status (ready, in-progress, awaiting-metadata, awaiting-alt-texts, or error)"),
             @ApiResponse(responseCode = "500", description = "Processing error")
     })
     @GetMapping(
@@ -68,6 +68,9 @@ public class StatusController {
 
         if (currentStatus == ProcessingStatus.AWAITING_METADATA) {
             return ResponseEntity.ok(new StatusResponse("awaiting-metadata", null, null));
+        }
+        if (currentStatus == ProcessingStatus.AWAITING_ALT_TEXTS) {
+            return ResponseEntity.ok(new StatusResponse("awaiting-alt-texts", null, null));
         }
         if (currentStatus == ProcessingStatus.IN_PROGRESS) {
             return ResponseEntity.ok(new StatusResponse("in-progress", null, null));
