@@ -14,11 +14,98 @@ import org.junit.jupiter.api.Test;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.model.content.ChapterNode;
+import fi.publishertools.kss.model.content.CharacterStyleRangeNode;
 import fi.publishertools.kss.model.content.ParagraphStyleRangeNode;
 import fi.publishertools.kss.model.content.StoryNode;
 import fi.publishertools.kss.phases.A4_ResolveContentHierarchy;
 
 class A4_ResolveContentHierarchyTest {
+
+    @Test @Disabled
+    @DisplayName("simplifyStyle reduces CharacterStyle to parent BasedOn when Styles.xml present")
+    void simplifyStyleReducesCharacterStyleToParent() throws Exception {
+        String stylesXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Root>
+              <CharacterStyle Self="CharacterStyle/Bold">
+                <Properties>
+                  <BasedOn type="object">CharacterStyle/[No character style]</BasedOn>
+                </Properties>
+              </CharacterStyle>
+              <CharacterStyle Self="CharacterStyle/Emphasis">
+                <Properties>
+                  <BasedOn type="object">CharacterStyle/Bold</BasedOn>
+                </Properties>
+              </CharacterStyle>
+            </Root>
+            """;
+        byte[] zipBytes = createZipWithStyles(stylesXml);
+        ChapterNode text = ChapterNode.text("Bold text", "CharacterStyle/Emphasis");
+        ChapterNode para = ChapterNode.sectionWithParagraphStyle(null, List.of(text), "ParagraphStyle/Body");
+        StoryNode story = new StoryNode(List.of(para), "TOCStyle/Chapter");
+
+        ProcessingContext context = createContext(zipBytes);
+        context.setChapters(List.of(story));
+
+        A4_ResolveContentHierarchy phase = new A4_ResolveContentHierarchy();
+        phase.process(context);
+
+        ChapterNode resultPara = context.getChapters().get(0).children().get(0);
+        ChapterNode resultText = resultPara.children().get(0);
+        assertThat(resultText).isInstanceOf(CharacterStyleRangeNode.class);
+        assertThat(resultText.appliedStyle()).isEqualTo("CharacterStyle/Bold");
+    }
+
+    @Test @Disabled
+    @DisplayName("simplifyStyle reduces ParagraphStyle to StyleExportTagMap exportTag when EPUB mapping present")
+    void simplifyStyleReducesParagraphStyleToExportTag() throws Exception {
+        String stylesXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Root>
+              <ParagraphStyle Self="ParagraphStyle/Heading1" BasedOn="ParagraphStyle/[No paragraph style]">
+                <StyleExportTagMap exportType="EPUB" exportTag="h1"/>
+              </ParagraphStyle>
+              <ParagraphStyle Self="ParagraphStyle/Body" BasedOn="ParagraphStyle/[No paragraph style]">
+                <StyleExportTagMap exportType="EPUB" exportTag="p"/>
+              </ParagraphStyle>
+            </Root>
+            """;
+        byte[] zipBytes = createZipWithStyles(stylesXml);
+        ChapterNode h1 = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Chapter 1")), "ParagraphStyle/Heading1");
+        ChapterNode body = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Content")), "ParagraphStyle/Body");
+        StoryNode story = new StoryNode(List.of(h1, body), "TOCStyle/Chapter");
+
+        ProcessingContext context = createContext(zipBytes);
+        context.setChapters(List.of(story));
+
+        A4_ResolveContentHierarchy phase = new A4_ResolveContentHierarchy();
+        phase.process(context);
+
+        assertThat(context.getChapters().get(0).children().get(0).appliedStyle()).isEqualTo("h1");
+        assertThat(context.getChapters().get(0).children().get(1).appliedStyle()).isEqualTo("p");
+    }
+
+    @Test
+    @DisplayName("simplifyStyle uses fallback when Styles.xml missing")
+    void passthroughWhenNoStylesXml() throws Exception {
+        byte[] zipBytes = createZipWithoutStylesXml();
+        ChapterNode h1 = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Chapter 1")), "ParagraphStyle/Heading1");
+        ChapterNode body = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Content")), "ParagraphStyle/Body");
+        StoryNode story = new StoryNode(List.of(h1, body), "TOCStyle/Chapter");
+
+        ProcessingContext context = createContext(zipBytes);
+        context.setChapters(List.of(story));
+
+        A4_ResolveContentHierarchy phase = new A4_ResolveContentHierarchy();
+        phase.process(context);
+
+        List<ChapterNode> chapters = context.getChapters();
+        assertThat(chapters).hasSize(1);
+        assertThat(chapters.get(0)).isInstanceOf(StoryNode.class);
+        assertThat(chapters.get(0).children()).hasSize(2);
+        assertThat(chapters.get(0).children().get(0).appliedStyle()).isEqualTo("Heading1");
+        assertThat(chapters.get(0).children().get(1).appliedStyle()).isEqualTo("Body");
+    }
 
     @Test @Disabled
     @DisplayName("A4_ResolveContentHierarchy passes through empty chapters")
@@ -31,25 +118,6 @@ class A4_ResolveContentHierarchyTest {
         phase.process(context);
 
         assertThat(context.getChapters()).isEmpty();
-    }
-
-    @Test @Disabled
-    @DisplayName("A4_ResolveContentHierarchy passes through when no Styles.xml")
-    void passthroughWhenNoStylesXml() throws Exception {
-        byte[] zipBytes = new byte[0];
-        ProcessingContext context = createContext(zipBytes);
-        ChapterNode h1 = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Chapter 1")), "ParagraphStyle/Heading1");
-        ChapterNode body = ChapterNode.sectionWithParagraphStyle(null, List.of(ChapterNode.text("Content")), "ParagraphStyle/Body");
-        StoryNode story = new StoryNode(List.of(h1, body), "TOCStyle/Chapter");
-        context.setChapters(List.of(story));
-
-        A4_ResolveContentHierarchy phase = new A4_ResolveContentHierarchy();
-        phase.process(context);
-
-        List<ChapterNode> chapters = context.getChapters();
-        assertThat(chapters).hasSize(1);
-        assertThat(chapters.get(0)).isInstanceOf(StoryNode.class);
-        assertThat(chapters.get(0).children()).hasSize(2);
     }
 
     @Test @Disabled
@@ -139,6 +207,17 @@ class A4_ResolveContentHierarchyTest {
             ZipEntry entry = new ZipEntry("Resources/Styles.xml");
             zos.putNextEntry(entry);
             zos.write(stylesXml.getBytes(StandardCharsets.UTF_8));
+            zos.closeEntry();
+        }
+        return baos.toByteArray();
+    }
+
+    private static byte[] createZipWithoutStylesXml() throws Exception {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {
+            ZipEntry entry = new ZipEntry("dummy.txt");
+            zos.putNextEntry(entry);
+            zos.write("dummy".getBytes(StandardCharsets.UTF_8));
             zos.closeEntry();
         }
         return baos.toByteArray();
