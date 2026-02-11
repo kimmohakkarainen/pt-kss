@@ -18,6 +18,7 @@ import fi.publishertools.kss.phases.C4_AssembleEPUB;
 import fi.publishertools.kss.service.PendingAltTextStore;
 import fi.publishertools.kss.phases.B1_CheckMandatoryInformation;
 import fi.publishertools.kss.phases.B2_ProposeImageAltTexts;
+import fi.publishertools.kss.phases.B3_ProposeLangMarkup;
 import fi.publishertools.kss.phases.C3_CreatePackageOpf;
 import fi.publishertools.kss.phases.A2_ExtractChapters;
 import fi.publishertools.kss.phases.A1_ExtractStories;
@@ -41,8 +42,8 @@ public class ProcessingPipelineService {
     private static final Logger logger = LoggerFactory.getLogger(ProcessingPipelineService.class);
     private static final String PHASE_THREAD_PREFIX = "phase-";
     private static final int CHECK_MANDATORY_PHASE_INDEX = 4;
-    /** Phase index for C1_GenerateXHTML (resume point after alt text review). */
-    private static final int C1_PHASE_INDEX = 6;
+    /** Phase index to resume after alt text review (B3_ProposeLangMarkup), then C1, C2, ... run. */
+    private static final int RESUME_AFTER_ALT_TEXT_PHASE_INDEX = 6;
 
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
@@ -129,7 +130,8 @@ public class ProcessingPipelineService {
     }
 
     /**
-     * Re-queue a ProcessingContext for C1_GenerateXHTML (e.g. after user has reviewed alt texts).
+     * Re-queue a ProcessingContext at B3_ProposeLangMarkup (e.g. after user has reviewed alt texts).
+     * B3 then C1, C2, ... run to completion.
      */
     public void resubmitAfterAltTextReview(ProcessingContext context) {
         if (pipeline == null) {
@@ -138,7 +140,7 @@ public class ProcessingPipelineService {
         }
         try {
             statusStore.setStatus(context.getFileId(), ProcessingStatus.IN_PROGRESS);
-            pipeline.submitToPhase(C1_PHASE_INDEX, context);
+            pipeline.submitToPhase(RESUME_AFTER_ALT_TEXT_PHASE_INDEX, context);
             logger.info("Resubmitted file {} after alt text review", context.getFileId());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -157,6 +159,7 @@ public class ProcessingPipelineService {
         phases.add(new A4_ResolveContentHierarchy());
         phases.add(new B1_CheckMandatoryInformation());
         phases.add(new B2_ProposeImageAltTexts(ollamaClient));
+        phases.add(new B3_ProposeLangMarkup(ollamaClient));
         phases.add(new C1_GenerateXHTML());
         phases.add(new C2_GenerateTableOfContents());
         phases.add(new C3_CreatePackageOpf());
