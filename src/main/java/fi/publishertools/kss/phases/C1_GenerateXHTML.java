@@ -78,13 +78,17 @@ public class C1_GenerateXHTML extends ProcessingPhase {
             if (node.title() != null && !node.title().isEmpty()) {
                 out.append("      <h2>").append(XmlUtils.escapeXml(node.title())).append("</h2>\n");
             }
-            renderNodes(node.children(), out, counter);
+            if (node instanceof ParagraphStyleRangeNode) {
+                renderParagraphContent(node.children(), out);
+            } else {
+                renderNodes(node.children(), out, counter);
+            }
             out.append("    </section>\n");
         } else if (node.isText()) {
             String sectionId = "section-" + counter.next();
             String dataAttrs = buildStyleDataAttributes(node);
             out.append("    <section class=\"chapter\" id=\"").append(sectionId).append("\"").append(dataAttrs).append(">")
-                    .append("<p>").append(XmlUtils.escapeXml(node.text() != null ? node.text() : "")).append("</p>")
+                    .append("<p>").append(renderTextWithOptionalLang(node)).append("</p>")
                     .append("</section>\n");
         } else if (node.isImage()) {
             String sectionId = "section-" + counter.next();
@@ -98,6 +102,67 @@ public class C1_GenerateXHTML extends ProcessingPhase {
                     .append("<figure><img src=\"").append(src).append("\" alt=\"").append(alt).append("\"/></figure>")
                     .append("</section>\n");
         }
+    }
+
+    /**
+     * Renders a paragraph's children: consecutive CharacterStyleRangeNodes as one or more <p> with
+     * optional <span lang="..."> for non-main-language segments; ImageNodes as <figure>. No extra sections.
+     */
+    private static void renderParagraphContent(List<ChapterNode> children, StringBuilder out) {
+        if (children == null || children.isEmpty()) {
+            return;
+        }
+        List<CharacterStyleRangeNode> textRun = new java.util.ArrayList<>();
+        for (ChapterNode node : children) {
+            if (node instanceof CharacterStyleRangeNode csr) {
+                textRun.add(csr);
+            } else {
+                flushParagraphTextRun(textRun, out);
+                textRun.clear();
+                if (node instanceof ImageNode img) {
+                    String src = IMAGES_PATH + XmlUtils.escapeXml(img.fileName() != null ? img.fileName() : "");
+                    String alt = img.alternateText() != null && !img.alternateText().isBlank()
+                            ? XmlUtils.escapeXml(img.alternateText()) : "";
+                    out.append("      <figure><img src=\"").append(src).append("\" alt=\"").append(alt).append("\"/></figure>\n");
+                }
+            }
+        }
+        flushParagraphTextRun(textRun, out);
+    }
+
+    private static void flushParagraphTextRun(List<CharacterStyleRangeNode> run, StringBuilder out) {
+        if (run.isEmpty()) {
+            return;
+        }
+        out.append("      <p>");
+        for (CharacterStyleRangeNode node : run) {
+            out.append(renderTextWithOptionalLang(node));
+        }
+        out.append("</p>\n");
+    }
+
+    private static String renderTextWithOptionalLang(ChapterNode node) {
+        if (!(node instanceof CharacterStyleRangeNode csr)) {
+            return XmlUtils.escapeXml(node.text() != null ? node.text() : "");
+        }
+        String text = csr.text() != null ? csr.text() : "";
+        String escaped = XmlUtils.escapeXml(text);
+        String lang = csr.language();
+        String style = csr.appliedStyle();
+        boolean needSpan = (lang != null && !lang.isBlank()) || (style != null && !style.isEmpty());
+        if (needSpan) {
+            StringBuilder span = new StringBuilder("<span");
+            if (lang != null && !lang.isBlank()) {
+                String langEscaped = XmlUtils.escapeXml(lang);
+                span.append(" lang=\"").append(langEscaped).append("\" xml:lang=\"").append(langEscaped).append("\"");
+            }
+            if (style != null && !style.isEmpty()) {
+                span.append(" data-character-style=\"").append(XmlUtils.escapeXml(style)).append("\"");
+            }
+            span.append(">").append(escaped).append("</span>");
+            return span.toString();
+        }
+        return escaped;
     }
 
     private static String buildStyleDataAttributes(ChapterNode node) {

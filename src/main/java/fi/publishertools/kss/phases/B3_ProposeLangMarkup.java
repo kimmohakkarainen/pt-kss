@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.publishertools.kss.exception.AwaitingLangMarkupReviewException;
 import fi.publishertools.kss.integration.ollama.OllamaClient;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.model.content.ChapterNode;
@@ -50,7 +51,7 @@ public class B3_ProposeLangMarkup extends ProcessingPhase {
 	}
 
 	@Override
-	public void process(ProcessingContext context) throws Exception {
+	public void process(ProcessingContext context) throws Exception, AwaitingLangMarkupReviewException {
 		List<ChapterNode> chapters = context.getChapters();
 		if (chapters == null || chapters.isEmpty()) {
 			return;
@@ -58,6 +59,32 @@ public class B3_ProposeLangMarkup extends ProcessingPhase {
 		String mainLanguage = mainLanguageFromContext(context);
 		List<ChapterNode> updated = processNodes(chapters, mainLanguage, context.getFileId());
 		context.setChapters(updated);
+		if (hasAnyLangSegment(updated)) {
+			throw new AwaitingLangMarkupReviewException(context);
+		}
+	}
+
+	/** Returns true if the tree contains any CharacterStyleRangeNode with non-null, non-blank language. */
+	private boolean hasAnyLangSegment(List<ChapterNode> nodes) {
+		if (nodes == null) {
+			return false;
+		}
+		for (ChapterNode node : nodes) {
+			if (node instanceof CharacterStyleRangeNode csr) {
+				if (csr.language() != null && !csr.language().isBlank()) {
+					return true;
+				}
+			} else if (node instanceof StoryNode story) {
+				if (hasAnyLangSegment(story.children())) {
+					return true;
+				}
+			} else if (node instanceof ParagraphStyleRangeNode para) {
+				if (hasAnyLangSegment(para.children())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private String mainLanguageFromContext(ProcessingContext context) {
@@ -122,7 +149,7 @@ public class B3_ProposeLangMarkup extends ProcessingPhase {
 			if (seg.text().isEmpty()) {
 				continue;
 			}
-			result.add(new CharacterStyleRangeNode(seg.text(), appliedStyle));
+			result.add(new CharacterStyleRangeNode(seg.text(), appliedStyle, seg.mainLanguage() ? null : "und"));
 		}
 		return result.isEmpty() ? List.of(node) : result;
 	}

@@ -17,12 +17,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * REST controller for downloading ready-made EPUB files by upload/processing ID.
  */
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Download", description = "Download the generated EPUB when status is ready.")
 public class DownloadController {
 
     private static final String EPUB_MEDIA_TYPE = "application/epub+zip";

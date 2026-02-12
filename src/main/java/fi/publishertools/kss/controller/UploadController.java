@@ -19,11 +19,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import fi.publishertools.kss.model.StoredFile;
 import fi.publishertools.kss.service.UploadService;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Upload", description = "Upload a ZIP file (IDML) for EPUB processing.")
 public class UploadController {
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";

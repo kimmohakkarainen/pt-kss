@@ -98,7 +98,7 @@ public class A2_ExtractChapters extends ProcessingPhase {
 		String localName = XmlUtils.getElementName(element);
 		if ("Content".equals(localName)) {
 			String text = element.getTextContent();
-			return new CharacterStyleRangeNode(text != null ? text : "", null);
+			return new CharacterStyleRangeNode(text != null ? text : "", null, null);
 		} else if ("Link".equals(localName)) {
 			String uri = element.getAttribute(ATTR_LINK_RESOURCE_URI);
 			String decodedUri = ZipUtils.decodeUri(uri != null ? uri : "");
@@ -113,7 +113,7 @@ public class A2_ExtractChapters extends ProcessingPhase {
 			if (children.size() == 1) {
 				ChapterNode child = children.get(0);
 				if (child instanceof CharacterStyleRangeNode) {
-					return new CharacterStyleRangeNode(child.text(), appliedStyle);
+					return new CharacterStyleRangeNode(child.text(), appliedStyle, null);
 				}
 				if (child instanceof ImageNode img) {
 					return new ImageNode(img.resourceUri(), img.fileName(), img.resourceFormat(), appliedStyle, img.alternateText());

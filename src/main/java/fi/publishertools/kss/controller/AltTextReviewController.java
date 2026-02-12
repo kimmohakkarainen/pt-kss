@@ -31,9 +31,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Alt text review", description = "Review and edit proposed image alt texts when status is awaiting-alt-texts.")
 public class AltTextReviewController {
 
     private final PendingAltTextStore pendingAltTextStore;

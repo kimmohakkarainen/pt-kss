@@ -14,7 +14,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("PT-KSS API")
-                        .description("REST API for EPUB processing: upload, mandatory metadata completion, image alt text review, and download.")
+                        .description("REST API for EPUB processing: upload, mandatory metadata completion, image alt text review, language markup review, and download. Processing may pause for user input (awaiting-metadata, awaiting-alt-texts, awaiting-lang-markup-review); use the corresponding endpoints to complete and resume.")
                         .version("1.0"));
     }
 }

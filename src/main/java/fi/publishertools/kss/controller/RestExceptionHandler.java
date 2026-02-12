@@ -13,6 +13,7 @@ import fi.publishertools.kss.exception.EpubNotFoundException;
 import fi.publishertools.kss.exception.FileTooLargeException;
 import fi.publishertools.kss.exception.InvalidContentTypeException;
 import fi.publishertools.kss.exception.PendingAltTextNotFoundException;
+import fi.publishertools.kss.exception.PendingLangMarkupNotFoundException;
 import fi.publishertools.kss.exception.PendingMetadataNotFoundException;
 import fi.publishertools.kss.exception.ProcessingNotCompletedException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -82,6 +83,18 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(PendingAltTextNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePendingAltTextNotFound(PendingAltTextNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(PendingLangMarkupNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePendingLangMarkupNotFound(PendingLangMarkupNotFoundException ex, HttpServletRequest request) {
         ErrorResponse body = new ErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),

@@ -10,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fi.publishertools.kss.exception.AwaitingAltTextReviewException;
+import fi.publishertools.kss.exception.AwaitingLangMarkupReviewException;
 import fi.publishertools.kss.exception.MandatoryMetadataMissingException;
 import fi.publishertools.kss.model.ProcessingContext;
 import fi.publishertools.kss.service.PendingAltTextStore;
+import fi.publishertools.kss.service.PendingLangMarkupStore;
 import fi.publishertools.kss.service.PendingMetadataStore;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;
@@ -31,6 +33,7 @@ public class ProcessingPipeline {
     private final ProcessedResultStore resultStore;
     private final PendingMetadataStore pendingMetadataStore;
     private final PendingAltTextStore pendingAltTextStore;
+    private final PendingLangMarkupStore pendingLangMarkupStore;
     private final String threadPrefix;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -39,12 +42,14 @@ public class ProcessingPipeline {
                               ProcessedResultStore resultStore,
                               PendingMetadataStore pendingMetadataStore,
                               PendingAltTextStore pendingAltTextStore,
+                              PendingLangMarkupStore pendingLangMarkupStore,
                               String threadPrefix) {
         this.phases = new ArrayList<>(phases);
         this.statusStore = statusStore;
         this.resultStore = resultStore;
         this.pendingMetadataStore = pendingMetadataStore;
         this.pendingAltTextStore = pendingAltTextStore;
+        this.pendingLangMarkupStore = pendingLangMarkupStore;
         this.threadPrefix = threadPrefix;
         this.buffers = new ArrayList<>();
         this.workerThreads = new ArrayList<>();
@@ -111,6 +116,10 @@ public class ProcessingPipeline {
                             statusStore.setStatus(e.getContext().getFileId(), ProcessingStatus.AWAITING_ALT_TEXTS);
                             pendingAltTextStore.store(e.getContext().getFileId(), e.getContext());
                             logger.info("File {} awaiting alt text review", e.getContext().getFileId());
+                        } catch (AwaitingLangMarkupReviewException e) {
+                            statusStore.setStatus(e.getContext().getFileId(), ProcessingStatus.AWAITING_LANG_MARKUP_REVIEW);
+                            pendingLangMarkupStore.store(e.getContext().getFileId(), e.getContext());
+                            logger.info("File {} awaiting lang markup review", e.getContext().getFileId());
                         } catch (Exception e) {
                             logger.error("Error in phase {} processing file {}", phase.getName(), context.getFileId(), e);
                             statusStore.setStatus(context.getFileId(), ProcessingStatus.ERROR);

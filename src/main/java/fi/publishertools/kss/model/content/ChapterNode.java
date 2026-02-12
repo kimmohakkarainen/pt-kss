@@ -71,12 +71,12 @@ public sealed interface ChapterNode extends java.io.Serializable
     // Factory methods for backward compatibility and manual construction
 
     static ChapterNode text(String text) {
-        return new CharacterStyleRangeNode(text != null ? text : "", null);
+        return new CharacterStyleRangeNode(text != null ? text : "", null, null);
     }
 
     static ChapterNode text(String text, String appliedStyle) {
         return new CharacterStyleRangeNode(text != null ? text : "",
-                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null);
+                appliedStyle != null && !appliedStyle.isEmpty() ? appliedStyle : null, null);
     }
 
     static ChapterNode image(String imageRef) {

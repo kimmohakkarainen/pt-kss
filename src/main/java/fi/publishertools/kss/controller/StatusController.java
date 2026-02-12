@@ -14,6 +14,7 @@ import fi.publishertools.kss.processing.ProcessingStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import fi.publishertools.kss.service.ProcessedResultStore;
 import fi.publishertools.kss.service.ProcessingStatusStore;
 
@@ -22,6 +23,7 @@ import fi.publishertools.kss.service.ProcessingStatusStore;
  */
 @RestController
 @RequestMapping("/api/v1")
+@Tag(name = "Status", description = "Check processing status (ready, in-progress, awaiting-metadata, awaiting-alt-texts, awaiting-lang-markup-review, error).")
 public class StatusController {
 
     private final ProcessingStatusStore statusStore;
@@ -32,9 +34,9 @@ public class StatusController {
         this.resultStore = resultStore;
     }
 
-    @Operation(summary = "Get processing status", description = "Check the processing status of an uploaded file. Possible status values: ready, in-progress, awaiting-metadata, awaiting-alt-texts, error.")
+    @Operation(summary = "Get processing status", description = "Check the processing status of an uploaded file. Possible status values: ready, in-progress, awaiting-metadata, awaiting-alt-texts, awaiting-lang-markup-review, error.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Current status (ready, in-progress, awaiting-metadata, awaiting-alt-texts, or error)"),
+            @ApiResponse(responseCode = "200", description = "Current status (ready, in-progress, awaiting-metadata, awaiting-alt-texts, awaiting-lang-markup-review, or error)"),
             @ApiResponse(responseCode = "500", description = "Processing error")
     })
     @GetMapping(
@@ -71,6 +73,9 @@ public class StatusController {
         }
         if (currentStatus == ProcessingStatus.AWAITING_ALT_TEXTS) {
             return ResponseEntity.ok(new StatusResponse("awaiting-alt-texts", null, null));
+        }
+        if (currentStatus == ProcessingStatus.AWAITING_LANG_MARKUP_REVIEW) {
+            return ResponseEntity.ok(new StatusResponse("awaiting-lang-markup-review", null, null));
         }
         if (currentStatus == ProcessingStatus.IN_PROGRESS) {
             return ResponseEntity.ok(new StatusResponse("in-progress", null, null));

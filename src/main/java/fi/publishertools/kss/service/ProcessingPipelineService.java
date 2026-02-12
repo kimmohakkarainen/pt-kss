@@ -44,11 +44,14 @@ public class ProcessingPipelineService {
     private static final int CHECK_MANDATORY_PHASE_INDEX = 4;
     /** Phase index to resume after alt text review (B3_ProposeLangMarkup), then C1, C2, ... run. */
     private static final int RESUME_AFTER_ALT_TEXT_PHASE_INDEX = 6;
+    /** Phase index for C1_GenerateXHTML; resume after lang markup review. */
+    private static final int RESUME_AFTER_LANG_MARKUP_REVIEW_PHASE_INDEX = 7;
 
     private final ProcessingStatusStore statusStore;
     private final ProcessedResultStore resultStore;
     private final PendingMetadataStore pendingMetadataStore;
     private final PendingAltTextStore pendingAltTextStore;
+    private final PendingLangMarkupStore pendingLangMarkupStore;
     private final OllamaCacheProperties ollamaCacheProperties;
     private ProcessingPipeline pipeline;
 
@@ -56,11 +59,13 @@ public class ProcessingPipelineService {
                                      ProcessedResultStore resultStore,
                                      PendingMetadataStore pendingMetadataStore,
                                      PendingAltTextStore pendingAltTextStore,
+                                     PendingLangMarkupStore pendingLangMarkupStore,
                                      OllamaCacheProperties ollamaCacheProperties) {
         this.statusStore = statusStore;
         this.resultStore = resultStore;
         this.pendingMetadataStore = pendingMetadataStore;
         this.pendingAltTextStore = pendingAltTextStore;
+        this.pendingLangMarkupStore = pendingLangMarkupStore;
         this.ollamaCacheProperties = ollamaCacheProperties;
     }
 
@@ -74,6 +79,7 @@ public class ProcessingPipelineService {
                 resultStore,
                 pendingMetadataStore,
                 pendingAltTextStore,
+                pendingLangMarkupStore,
                 PHASE_THREAD_PREFIX
         );
         pipeline.start();
@@ -147,6 +153,27 @@ public class ProcessingPipelineService {
             logger.error("Interrupted while resubmitting file {} after alt text review", context.getFileId(), e);
         } catch (Exception e) {
             logger.error("Failed to resubmit file {} after alt text review", context.getFileId(), e);
+        }
+    }
+
+    /**
+     * Re-queue a ProcessingContext at C1_GenerateXHTML (e.g. after user has reviewed lang markup).
+     * C1, C2, ... run to completion.
+     */
+    public void resubmitAfterLangMarkupReview(ProcessingContext context) {
+        if (pipeline == null) {
+            logger.error("Pipeline not initialized, cannot resubmit file {} after lang markup review", context.getFileId());
+            return;
+        }
+        try {
+            statusStore.setStatus(context.getFileId(), ProcessingStatus.IN_PROGRESS);
+            pipeline.submitToPhase(RESUME_AFTER_LANG_MARKUP_REVIEW_PHASE_INDEX, context);
+            logger.info("Resubmitted file {} after lang markup review", context.getFileId());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Interrupted while resubmitting file {} after lang markup review", context.getFileId(), e);
+        } catch (Exception e) {
+            logger.error("Failed to resubmit file {} after lang markup review", context.getFileId(), e);
         }
     }
 
